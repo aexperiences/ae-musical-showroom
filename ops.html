@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Operations · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"ops.html", crumb:"Operations" });
+  c.appendChild(M.page("Operations",
+    "Invoices, expenses, and the sales tax the state is waiting on. The unglamorous room that keeps a 501(c)(3) out of trouble."));
+
+  c.appendChild(M.card(
+    '<h2>What is owed and to whom</h2>' +
+    '<div class="statrow">' +
+      M.stat("Idaho sales tax", M.money(M.salesTaxOwed(d)), "on admissions collected", "watch") +
+      M.stat("Pledged, uncollected", M.money(d.gifts.filter(function (g) { return g.kind === "Pledge"; })
+        .reduce(function (s,g) { return s + ((g.pledged||0) - (g.paid||0)); }, 0)), "money promised, not banked", "watch") +
+      M.stat("Committed build spend", M.money(d.productions.reduce(function (s,p) { return s + p.spend; }, 0)), "already out the door") +
+      M.stat("Expenses booked", M.money(M.expensesTotal(d)), "season to date") +
+    '</div>' +
+    '<div class="fence" style="margin-top:14px">Idaho state sales tax runs at <b>6%</b> on taxable admissions. The rate is settled; whether a specific ticket type is taxable is graded by Counsel rather than assumed here. Remit on the state\'s schedule, and keep it as a separate line so it never looks like income.</div>'));
+
+  c.appendChild(M.card(
+    '<h2>Expense ledger</h2>' +
+    '<div class="card-sub">Every line carries its 990 function, because assigning it at year-end is how a house ends up guessing.</div>' +
+    '<table><thead><tr><th>Line</th><th>990 function</th><th class="num">Amount</th></tr></thead><tbody>' +
+    d.expenses.map(function (x) {
+      return '<tr><td class="t-main">' + M.esc(x.cat) + '</td>' +
+        '<td>' + M.tag(x.fn, x.fn === "Program" ? "good" : "ghost") + '</td>' +
+        '<td class="num">' + M.money(x.amt) + '</td></tr>';
+    }).join("") +
+    '<tr class="tot"><td><b>Total</b></td><td></td><td class="num"><b>' + M.money(M.expensesTotal(d)) + '</b></td></tr>' +
+    '</tbody></table>'));
+
+  c.appendChild(M.card(
+    '<h2>Other earned income</h2>' +
+    '<table><thead><tr><th>Source</th><th class="num">Amount</th><th>Note</th></tr></thead><tbody>' +
+    d.earned.map(function (e) {
+      return '<tr><td class="t-main">' + M.esc(e.kind) + '</td><td class="num">' + M.money(e.amt) + '</td>' +
+        '<td class="t-sub">' + M.esc(e.note) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+})();
+</script>
+</body>
+</html>

@@ -412,3 +412,8 @@ input[type=range]{padding:0; border:none; background:transparent; accent-color:v
 .lawgrade.caution{  background:rgba(201,149,74,.15); border-color:rgba(201,149,74,.46); color:#8a5f21; }
 .lawgrade.attorney{ background:rgba(168,62,62,.13);  border-color:rgba(168,62,62,.42);  color:#9c3b3b; }
 .card.watchcard{ border-left:3px solid var(--brass); }
+
+/* The real product icon sits on its own artwork — drop the brass plate and the
+   tint so the illustrated mark reads as itself rather than as a glyph. */
+.bmark.art{ background:none; box-shadow:none; border-radius:10px; overflow:hidden; }
+.bmark.art img{ width:100%; height:100%; object-fit:contain; display:block; }

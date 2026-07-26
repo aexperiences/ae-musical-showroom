@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Program Builder · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"program.html", crumb:"Program Builder" });
+  c.appendChild(M.page("Program Builder",
+    "The playbill is not a keepsake — it is inventory. Every page a sponsor was promised has to actually appear in it, and this room is where that gets proven."));
+
+  var gaps = M.sponsorGaps(d).filter(function (g) { return /playbill/i.test(g.item); });
+  var pages = [];
+  d.sponsors.forEach(function (s) {
+    Object.keys(s.fulfil || {}).forEach(function (i) {
+      if (/playbill/i.test(i)) pages.push({ sponsor:s.name, item:i, done:s.fulfil[i], level:s.level });
+    });
+  });
+  c.appendChild(M.card(
+    '<h2>Playbill inventory</h2>' +
+    '<div class="statrow">' +
+      M.stat("Ad pages sold", pages.length, "across " + d.sponsors.length + " sponsors") +
+      M.stat("Placed", pages.filter(function (p) { return p.done; }).length, "in the book") +
+      M.stat("Still owed", gaps.length, "promised, not yet placed", gaps.length ? "bad" : "good") +
+    '</div>' +
+    '<table><thead><tr><th>Sponsor</th><th>What they bought</th><th>In the book</th></tr></thead><tbody>' +
+    pages.map(function (p) {
+      return '<tr><td class="t-main">' + M.esc(p.sponsor) + '</td><td>' + M.esc(p.item) + '</td>' +
+        '<td>' + (p.done ? M.tag("Placed", "good") : M.tag("Owed", "bad")) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  c.appendChild(M.card(
+    '<h2>Build a playbill</h2>' +
+    '<div class="card-sub">Cast pages, bios, the director\'s note and the sponsor block, assembled from the record rather than retyped every show.</div>' +
+    '<table><thead><tr><th>Production</th><th>Playbill</th><th></th></tr></thead><tbody>' +
+    d.productions.map(function (p) {
+      var ready = M.canGoOnSale(p);
+      return '<tr><td><div class="t-main">' + M.esc(p.title) + '</div><div class="t-sub">' + M.esc(p.type) + ' · ' + p.perfs + ' performances</div></td>' +
+        '<td>' + (ready ? M.tag("Ready to typeset", "good") : M.tag("Waiting on rights", "watch")) + '</td>' +
+        '<td>' + (ready ? '<button class="btn ghost sm bp" data-t="' + M.esc(p.title) + '">Send to print</button>' : '—') + '</td></tr>';
+    }).join("") + '</tbody></table>' +
+    M.srcNote("A playbill names the licensor and carries the required author credit. Printing before rights clear means reprinting.")));
+
+  setTimeout(function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".bp"), function (b) {
+      b.addEventListener("click", function () {
+        M.stage("Spend", "Print playbill — " + this.dataset.t, "Commits a print run with the printer.", "Program Builder");
+        M.toast("Staged on the Approval Desk — nothing ordered.", "ok");
+      });
+    });
+  }, 0);
+})();
+</script>
+</body>
+</html>

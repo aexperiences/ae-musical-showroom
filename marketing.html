@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marketing · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"marketing.html", crumb:"Marketing" });
+  c.appendChild(M.page("Marketing",
+    "Season announcements, appeals and single-ticket pushes. A playhouse markets two different things to two different people — a seat, and a reason to give."));
+
+  c.appendChild(M.card(
+    '<h2>Two audiences, one list</h2>' +
+    '<div class="card-sub">The same person is often both a subscriber and a donor. Treating those as separate databases is how a house thanks someone for a gift while asking them to renew a package they already bought.</div>' +
+    '<div class="statrow">' +
+      M.stat("Subscribers", d.packages.reduce(function (s,p) { return s + p.sold; }, 0).toLocaleString(), "hold a season package") +
+      M.stat("Donors", d.gifts.length, "gave this season") +
+      M.stat("Sponsors", d.sponsors.length, "local businesses") +
+      M.stat("Students & families", d.classes.reduce(function (s,x) { return s + x.enrolled; }, 0), "in the education programme") +
+    '</div>'));
+
+  var sellable = d.productions.filter(function (p) { return M.canGoOnSale(p); });
+  var blocked  = d.productions.filter(function (p) { return !M.canGoOnSale(p); });
+  c.appendChild(M.card(
+    '<h2>What you can actually announce</h2>' +
+    '<div class="card-sub">Announcing a title before the licence is signed is the most expensive marketing mistake a community house makes — and the easiest to avoid.</div>' +
+    '<div class="statrow">' +
+      M.stat("Clear to announce", sellable.length, "rights secured", "good") +
+      M.stat("Do not announce yet", blocked.length, "rights outstanding", blocked.length ? "bad" : "good") +
+    '</div>' +
+    '<table><thead><tr><th>Production</th><th>Rights</th><th></th></tr></thead><tbody>' +
+    d.productions.map(function (p) {
+      var ok = M.canGoOnSale(p);
+      return '<tr><td class="t-main">' + M.esc(p.title) + '</td>' +
+        '<td>' + M.tag(p.rights, ok ? "good" : "bad") + '</td>' +
+        '<td>' + (ok ? '<button class="btn ghost sm ann" data-t="' + M.esc(p.title) + '">Draft announcement</button>'
+                     : M.tag("Blocked — unlicensed", "bad")) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  c.appendChild(M.card(
+    '<h2>The year-end appeal</h2>' +
+    '<div class="card-sub">Most of a community house\'s individual giving arrives in the last six weeks of the calendar year. The list to write to is already in this OS.</div>' +
+    '<div class="row"><button class="btn brass sm" id="appeal">Draft the appeal</button>' +
+    '<span class="muted small" style="margin-left:12px">Writes to ' + d.gifts.length + ' prior donors. Staged, never sent.</span></div>'));
+
+  setTimeout(function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".ann"), function (b) {
+      b.addEventListener("click", function () {
+        M.stage("Publish", "Announce " + this.dataset.t, "Public season announcement across site, email and social.", "Marketing");
+        M.toast("Staged on the Approval Desk — nothing published.", "ok");
+      });
+    });
+    var a = document.getElementById("appeal");
+    if (a) a.addEventListener("click", function () {
+      M.stage("Send", "Year-end appeal", "Email appeal to " + d.gifts.length + " prior donors.", "Marketing");
+      M.toast("Drafted and staged — nothing sent.", "ok");
+    });
+  }, 0);
+})();
+</script>
+</body>
+</html>

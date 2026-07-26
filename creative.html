@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Creative Studio · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"creative.html", crumb:"Creative Studio" });
+  c.appendChild(M.page("Creative Studio",
+    "Posters, playbill pages and sponsor ads — made here instead of on a per-seat design subscription the house pays for twelve months to use for six weeks."));
+
+  c.appendChild(M.card(
+    '<h2>What this replaces</h2>' +
+    '<div class="statrow">' +
+      M.stat("Design subscription", "$23–$60", "per seat, per month") +
+      M.stat("Assets a season needs", (d.productions.length * 3) + d.sponsors.length, "posters, socials, sponsor ads") +
+      M.stat("Sponsor ads to produce", d.sponsors.length, "one per sponsor, minimum") +
+    '</div>' +
+    M.srcNote("Design-subscription pricing is vendor-published per seat. Everything else on this card is counted off this house's own record.")));
+
+  c.appendChild(M.card(
+    '<h2>The season asset list</h2>' +
+    '<table><thead><tr><th>Production</th><th>Needs</th><th>State</th></tr></thead><tbody>' +
+    d.productions.map(function (p) {
+      var live = p.stage === "Running" || p.seatsSold > 0;
+      return '<tr><td><div class="t-main">" ' + M.esc(p.title) + ' "</div><div class="t-sub">opens ' + M.esc(p.opens) + '</div></td>' +
+        '<td class="t-sub">Poster · social set · playbill cover</td>' +
+        '<td>' + (live ? M.tag("Produced", "good") : M.tag("Queued", "ghost")) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  c.appendChild(M.card(
+    '<h2>Sponsor ad slots</h2>' +
+    '<div class="card-sub">A sponsor ad is a deliverable with a deadline, not a favour. These are the ones the house owes artwork for.</div>' +
+    '<table><thead><tr><th>Sponsor</th><th>Level</th><th class="num">Renews</th><th>Artwork</th></tr></thead><tbody>' +
+    d.sponsors.map(function (s) {
+      var lvl = M.SPONSOR_LEVELS.filter(function (l) { return l.k === s.level; })[0];
+      var items = Object.keys(s.fulfil || {});
+      var done = items.filter(function (i) { return s.fulfil[i]; }).length;
+      return '<tr><td class="t-main">' + M.esc(s.name) + '</td>' +
+        '<td>' + M.esc(lvl ? lvl.name : s.level) + '</td>' +
+        '<td class="num">' + M.esc(s.renews) + '</td>' +
+        '<td>' + (done === items.length ? M.tag("Delivered", "good") : M.tag((items.length - done) + " outstanding", "bad")) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+})();
+</script>
+</body>
+</html>

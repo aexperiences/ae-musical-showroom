@@ -319,6 +319,22 @@
                   why:"Earned against contributed, and the functional split a 990 asks for." },
     law:        { label:"Law & Counsel",         mo:120, build:1000,
                   why:"The 501(c)(3) desk — graded CLEAR, CAUTION or ATTORNEY, never guessed." },
+    staffing:   { label:"Show Staffing",         mo:60,  build:450,
+                  why:"Auditions, cast lists, calls and conflicts in one calendar." },
+    scene:      { label:"Scene Shop",            mo:55,  build:400,
+                  why:"Build tasks, load-in, strike and what got rented." },
+    program:    { label:"Program Builder",       mo:65,  build:600,
+                  why:"Playbills and cast pages — and the sponsor inventory that pays for them." },
+    creative:   { label:"Creative Studio",       mo:80,  build:700,
+                  why:"Posters, playbill pages and sponsor ads without a design subscription." },
+    marketing:  { label:"Marketing",             mo:75,  build:600,
+                  why:"Season announcements, appeals, and what actually sold a seat." },
+    ops:        { label:"Operations",            mo:85,  build:650,
+                  why:"Deals, invoices, expenses and the sales tax the state is waiting on." },
+    hr:         { label:"HR & Time",             mo:70,  build:550,
+                  why:"Paid staff hours next to volunteer hours — the real labour picture." },
+    board:      { label:"Board & Governance",    mo:75,  build:600,
+                  why:"Terms, committees, conflict-of-interest and what the 990 will need." },
     org:        { label:"Agent Org · Bus",       mo:160, build:1300,
                   why:"A department chain behind every room, gated on a confidence bar." }
   };
@@ -329,15 +345,16 @@
       base:"One venue · up to 10 seats",
       includes:["boxoffice","productions","rights","patrons","volunteers","books"] },
     producing: { key:"producing", name:"Producing", rank:2, mo:1500, build:10000,
-      desc:"The house that fundraises. Adds giving, sponsorship and the education program.",
+      desc:"The house that fundraises. Adds giving, sponsorship, education, staffing, marketing, the playbill and operations.",
       base:"One venue · up to 25 seats",
       includes:["boxoffice","productions","rights","patrons","volunteers","books",
-                "dev","sponsors","education"] },
+                "dev","sponsors","education","staffing","marketing","program","ops"] },
     grandsuite: { key:"grandsuite", name:"Regional / Multi-venue", rank:3, mo:3200, build:25000,
-      desc:"Everything switched on — including the 501(c)(3) law desk and the full agent org.",
+      desc:"Everything switched on — the scene shop, the creative studio, HR, governance, the 501(c)(3) law desk and the full agent org.",
       base:"Multi-venue · unlimited seats · dedicated environment · data migration",
       includes:["boxoffice","productions","rights","patrons","volunteers","books",
-                "dev","sponsors","education","law","org"] }
+                "dev","sponsors","education","staffing","marketing","program","ops",
+                "scene","creative","hr","board","law","org"] }
   };
 
   /* Nav. Items with no `room` are platform and always present.
@@ -349,7 +366,9 @@
     ]},
     { group:"Season & Stage", items:[
       { label:"Productions",        href:"productions.html", room:"productions", ic:"▦" },
-      { label:"Rights & Royalties", href:"rights.html",      room:"rights",      ic:"§" }
+      { label:"Rights & Royalties", href:"rights.html",      room:"rights",      ic:"§" },
+      { label:"Show Staffing",      href:"staffing.html",    room:"staffing",    ic:"▤" },
+      { label:"Scene Shop",         href:"scene.html",       room:"scene",       ic:"⚒" }
     ]},
     { group:"Front of House", items:[
       { label:"Box Office",         href:"boxoffice.html",   room:"boxoffice",   ic:"◉" },
@@ -361,11 +380,19 @@
     ]},
     { group:"People & Learning", items:[
       { label:"Volunteers",         href:"volunteers.html",  room:"volunteers",  ic:"🤝" },
+      { label:"HR & Time",          href:"hr.html",          room:"hr",          ic:"◷" },
       { label:"Classes & Camps",    href:"education.html",   room:"education",   ic:"🎓" }
+    ]},
+    { group:"Story", items:[
+      { label:"Marketing",          href:"marketing.html",   room:"marketing",   ic:"📣" },
+      { label:"Program Builder",    href:"program.html",     room:"program",     ic:"📖" },
+      { label:"Creative Studio",    href:"creative.html",    room:"creative",    ic:"🎨" }
     ]},
     { group:"Money & Law", items:[
       { label:"Books",              href:"books.html",       room:"books",       ic:"▥" },
-      { label:"Law & Counsel",      href:"law.html",         room:"law",         ic:"§" }
+      { label:"Operations",         href:"ops.html",         room:"ops",         ic:"⚙" },
+      { label:"Law & Counsel",      href:"law.html",         room:"law",         ic:"§" },
+      { label:"Board & Governance", href:"board.html",       room:"board",       ic:"⬡" }
     ]},
     { group:"The Org", items:[
       { label:"Agent Org · Bus",    href:"org.html",         room:"org",         ic:"✦" }
@@ -935,10 +962,10 @@
     var side = document.createElement("aside"); side.className = "sidebar";
     side.appendChild(el(
       '<a href="dashboard.html" class="brand">'+
-        '<div class="bmark" aria-hidden="true">'+
-          '<svg viewBox="0 0 32 32" width="26" height="26"><g fill="none" stroke="currentColor" stroke-width="1.6">'+
-          '<path d="M5 12h22l-2 15H7z"/><path d="M5 12 16 4l11 8"/>'+
-          '<circle cx="12.5" cy="19" r="1.6"/><circle cx="19.5" cy="19" r="1.6"/></g></svg>'+
+        /* The real product icon from the AE icon set, not a drawn stand-in.
+           Served from the .com so one file updates every property. */
+        '<div class="bmark art" aria-hidden="true">'+
+          '<img src="https://www.aexperiences.com/Musical_OS.png" alt="" width="38" height="38">'+
         '</div>'+
         '<div><div class="bt">Musical OS</div><div class="bs">Community Playhouse OS</div></div>'+
       '</a>'

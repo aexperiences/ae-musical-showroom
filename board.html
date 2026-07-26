@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Board &amp; Governance · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"board.html", crumb:"Board & Governance" });
+  c.appendChild(M.page("Board & Governance",
+    "A 501(c)(3) is governed, not just run. Terms, committees, conflict-of-interest forms — and the evidence you complied, which is the part that actually matters."));
+
+  var noCoi = d.board.filter(function (b) { return !b.coi; });
+  c.appendChild(M.card(
+    '<h2>The board</h2>' +
+    '<div class="statrow">' +
+      M.stat("Directors", d.board.length, "on the roster") +
+      M.stat("Conflict forms on file", (d.board.length - noCoi.length) + " / " + d.board.length, noCoi.length ? "incomplete" : "complete", noCoi.length ? "bad" : "good") +
+      M.stat("Next term expiry", d.board.map(function (b) { return b.termEnds; }).sort()[0], "plan the succession") +
+    '</div>' +
+    '<table><thead><tr><th>Director</th><th>Seat</th><th class="num">Term ends</th><th>Conflict form</th></tr></thead><tbody>' +
+    d.board.map(function (b) {
+      return '<tr><td class="t-main">' + M.esc(b.name) + '</td><td>' + M.tag(b.seat, b.seat === "Member" ? "ghost" : "watch") + '</td>' +
+        '<td class="num">' + M.esc(b.termEnds) + '</td>' +
+        '<td>' + (b.coi ? M.tag("On file", "good") : '<button class="btn ghost sm coi" data-n="' + M.esc(b.name) + '">Request it</button>') + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  c.appendChild(M.card(
+    '<h2>What Counsel says about board duty</h2>' +
+    '<div class="lawgrade clear">🟢 CLEAR — settled + cited</div>' +
+    '<ul class="reasons">' +
+      '<li><span class="rtag data">STATUTE</span><span>A director owes duties of care, loyalty and obedience to the organisation\'s purpose.</span></li>' +
+      '<li><span class="rtag data">PRECEDENT</span><span>In practice: show up informed, disclose conflicts, and do not spend the money on something other than the mission.</span></li>' +
+      '<li><span class="rtag assumption">CHAIR</span><span>Keep a signed conflict-of-interest form for every director and minute the decisions. ' +
+        (noCoi.length ? '<b>' + noCoi.length + ' director(s) are missing one right now: ' + M.esc(noCoi.map(function (b) { return b.name; }).join(", ")) + '.</b>' : 'All forms are on file.') + '</span></li>' +
+    '</ul>' + M.srcNote("Counsel is a knowledge desk, not a lawyer, and this is not legal advice. For anything binding, hire a licensed Idaho attorney.")));
+
+  c.appendChild(M.card(
+    '<h2>What the 990 will ask for</h2>' +
+    '<div class="card-sub">A Form 990 is public. Someone will read it — a funder, a journalist, a prospective director. These are the numbers it wants, already computed.</div>' +
+    '<table><tbody>' +
+      '<tr><td>Total revenue</td><td class="num">' + M.money(M.totalRevenue(d)) + '</td></tr>' +
+      '<tr><td>Program service expense</td><td class="num">' + M.money(M.functionalSplit(d).amounts.Program) + '</td></tr>' +
+      '<tr><td>Management &amp; general</td><td class="num">' + M.money(M.functionalSplit(d).amounts.Management) + '</td></tr>' +
+      '<tr><td>Fundraising</td><td class="num">' + M.money(M.functionalSplit(d).amounts.Fundraising) + '</td></tr>' +
+      '<tr><td>Restricted funds held</td><td class="num">' + M.money(M.restrictedFunds(d).reduce(function (s,g) { return s + g.amt; }, 0)) + '</td></tr>' +
+      '<tr><td>Volunteer hours (not valued)</td><td class="num">' + M.hours(M.volunteerHours(d)) + '</td></tr>' +
+    '</tbody></table>' +
+    M.srcNote("Figures are this house's own, season to date. No sector comparison is shown — those benchmarks are not sourced in this build.")));
+
+  setTimeout(function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".coi"), function (b) {
+      b.addEventListener("click", function () {
+        M.stage("Send", "Conflict-of-interest form — " + this.dataset.n, "Requests a signed annual disclosure from a director.", "Governance");
+        M.toast("Staged on the Approval Desk — nothing sent.", "ok");
+      });
+    });
+  }, 0);
+})();
+</script>
+</body>
+</html>

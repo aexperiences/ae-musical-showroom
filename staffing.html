@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Show Staffing · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"staffing.html", crumb:"Show Staffing" });
+  c.appendChild(M.page("Show Staffing",
+    "Twelve hats, and most people wear more than one. Auditions, cast lists, calls and the conflict calendar — the thing that actually decides whether a community show can rehearse."));
+
+  c.appendChild(M.card(
+    '<h2>The hats a playhouse hands out</h2>' +
+    '<div class="card-sub">Not permission levels — jobs. A person holds as many as they hold, which is why role is a list and never a single value.</div>' +
+    '<table><thead><tr><th>Role</th><th>What they see</th></tr></thead><tbody>' +
+    M.HOUSE_ROLES.map(function (r) {
+      return '<tr><td class="t-main">' + M.esc(r.name) + '</td><td class="t-sub">' + M.esc(r.note) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  var inflight = d.productions.filter(function (p) { return ["Casting","Rehearsal","Tech","Running"].indexOf(p.stage) >= 0; });
+  c.appendChild(M.card(
+    '<h2>Shows needing people</h2>' +
+    '<div class="card-sub">A production cannot be staffed before its rights clear — casting a show you may not be allowed to perform is how a season loses a slot and a deposit.</div>' +
+    '<table><thead><tr><th>Production</th><th>Stage</th><th>Rights</th><th>Can staff</th></tr></thead><tbody>' +
+    d.productions.map(function (p) {
+      var ok = M.canGoOnSale(p);
+      return '<tr><td><div class="t-main">' + M.esc(p.title) + '</div><div class="t-sub">opens ' + M.esc(p.opens) + '</div></td>' +
+        '<td>' + M.tag(p.stage, p.stage === "Running" ? "good" : "ghost") + '</td>' +
+        '<td>' + M.tag(p.rights, ok ? "good" : "bad") + '</td>' +
+        '<td>' + (ok ? M.tag("Clear to cast", "good") : M.tag("Hold casting", "watch")) + '</td></tr>';
+    }).join("") + '</tbody></table>' +
+    M.srcNote("Holding casting is a recommendation, not a hard gate — a house may audition at risk. Selling a seat is the hard gate, and that one the OS refuses.")));
+
+  c.appendChild(M.card(
+    '<h2>Open calls across the season</h2>' +
+    '<table><thead><tr><th>Task</th><th>Whose hat</th><th class="num">Due</th></tr></thead><tbody>' +
+    (M.openTasks(d).length ? M.openTasks(d).map(function (t) {
+      var pr = d.productions.filter(function (p) { return p.id === t.prod; })[0];
+      return '<tr><td><div class="t-main">' + M.esc(t.what) + '</div><div class="t-sub">' + M.esc(pr ? pr.title : "") + '</div></td>' +
+        '<td>' + M.tag(t.who, "ghost") + '</td><td class="num">' + M.esc(t.due) + '</td></tr>';
+    }).join("") : '<tr><td colspan="3" class="empty">Nothing open. Rare, and worth enjoying.</td></tr>') +
+    '</tbody></table>'));
+})();
+</script>
+</body>
+</html>

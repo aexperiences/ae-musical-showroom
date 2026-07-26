@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HR &amp; Time · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"hr.html", crumb:"HR & Time" });
+  c.appendChild(M.page("HR & Time",
+    "Paid staff hours next to volunteer hours. Put them on one page and you can see the real labour picture — which is mostly unpaid, and mostly a handful of people."));
+
+  var paid = d.expenses.filter(function (x) { return /Staff/.test(x.cat); });
+  var paidTotal = paid.reduce(function (s,x) { return s + x.amt; }, 0);
+  var vh = M.volunteerHours(d);
+  c.appendChild(M.card(
+    '<h2>Paid and unpaid, together</h2>' +
+    '<div class="statrow">' +
+      M.stat("Paid staff cost", M.money(paidTotal), "season to date") +
+      M.stat("Volunteer hours", M.hours(vh), M.activeVolunteers(d) + " active people") +
+      M.stat("Paid staff lines", paid.length, "artistic + admin") +
+      M.stat("Share of expenses", M.pct(paidTotal / M.expensesTotal(d) * 100, 1), "that is payroll") +
+    '</div>' +
+    '<div class="fence" style="margin-top:14px">Volunteer hours carry <b>no dollar value</b> in this build. The Independent Sector hourly rate is not sourced here, and putting an invented figure beside a real payroll number would make the whole page untrustworthy — including the part that is right.</div>'));
+
+  c.appendChild(M.card(
+    '<h2>Paid staff</h2>' +
+    '<table><thead><tr><th>Line</th><th>990 function</th><th class="num">Season to date</th></tr></thead><tbody>' +
+    paid.map(function (x) {
+      return '<tr><td class="t-main">' + M.esc(x.cat) + '</td><td>' + M.tag(x.fn, x.fn === "Program" ? "good" : "ghost") + '</td>' +
+        '<td class="num">' + M.money(x.amt) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  c.appendChild(M.card(
+    '<h2>Where the unpaid hours go</h2>' +
+    '<table><thead><tr><th>Job</th><th class="num">People</th><th class="num">Hours</th></tr></thead><tbody>' +
+    M.VOLUNTEER_JOBS.map(function (j) {
+      var who = d.volunteers.filter(function (v) { return v.jobs.indexOf(j) >= 0; });
+      if (!who.length) return "";
+      var h = who.reduce(function (s,v) { return s + v.hours; }, 0);
+      return '<tr><td class="t-main">' + M.esc(j) + '</td><td class="num">' + who.length + '</td>' +
+        '<td class="num">' + h + '</td></tr>';
+    }).join("") + '</tbody></table>' +
+    M.srcNote("A volunteer's hours are counted against every job they hold, so these columns are a view of coverage — not a sum of the season total.")));
+})();
+</script>
+</body>
+</html>

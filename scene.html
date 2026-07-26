@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scene Shop · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"scene.html", crumb:"Scene Shop" });
+  c.appendChild(M.page("Scene Shop",
+    "Build, load-in, strike — and what got rented, because the thing a community house most often loses is the lighting instrument it borrowed."));
+
+  var budget = d.productions.reduce(function (s,p) { return s + p.budget; }, 0);
+  var spend  = d.productions.reduce(function (s,p) { return s + p.spend; }, 0);
+  c.appendChild(M.card(
+    '<h2>Build spend</h2>' +
+    '<div class="statrow">' +
+      M.stat("Season build budget", M.money(budget), "across " + d.productions.length + " productions") +
+      M.stat("Committed", M.money(spend), M.pct(spend / budget * 100, 1) + " of budget") +
+      M.stat("Remaining", M.money(budget - spend), "still to spend") +
+      M.stat("Open build tasks", M.openTasks(d).filter(function (t) {
+        return ["Costume Designer","Lighting Designer","TD / Scenic","Props"].indexOf(t.who) >= 0; }).length, "on the floor", "watch") +
+    '</div>'));
+
+  c.appendChild(M.card(
+    '<h2>Per show</h2>' +
+    '<table><thead><tr><th>Production</th><th>Venue</th><th class="num">Budget</th><th class="num">Spent</th><th class="num">Left</th></tr></thead><tbody>' +
+    d.productions.map(function (p) {
+      var v = d.house.venues.filter(function (x) { return x.k === p.venue; })[0];
+      var left = p.budget - p.spend;
+      return '<tr><td class="t-main">' + M.esc(p.title) + '</td>' +
+        '<td>' + M.esc(v ? v.name : p.venue) + '</td>' +
+        '<td class="num">' + M.money(p.budget) + '</td>' +
+        '<td class="num">' + M.money(p.spend) + '</td>' +
+        '<td class="num"><b>' + M.money(left) + '</b></td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  c.appendChild(M.card(
+    '<h2>Shop tasks</h2>' +
+    '<table><thead><tr><th>Task</th><th>Who</th><th class="num">Due</th></tr></thead><tbody>' +
+    M.openTasks(d).map(function (t) {
+      var pr = d.productions.filter(function (p) { return p.id === t.prod; })[0];
+      return '<tr><td><div class="t-main">' + M.esc(t.what) + '</div><div class="t-sub">' + M.esc(pr ? pr.title : "") + '</div></td>' +
+        '<td>' + M.tag(t.who, "ghost") + '</td><td class="num">' + M.esc(t.due) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+})();
+</script>
+</body>
+</html>
