@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rights &amp; Royalties · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"rights.html", crumb:"Rights & Royalties" });
+  c.appendChild(M.page("Rights & Royalties",
+    "The gate. A community theatre can lose a season — or a licence — by selling a seat to a show it does not hold the rights to. This room is the reason the season is safe."));
+
+  var un = M.rightsUnsecured(d);
+  c.appendChild(M.card(
+    '<h2>The gate</h2>' +
+    '<div class="card-sub">A production cannot be moved to <b>On Sale</b> while its rights are anything other than <b>Secured</b>. Not a preference — the OS refuses.</div>' +
+    '<div class="statrow">' +
+      M.stat("Secured", (d.productions.length - un.length) + " of " + d.productions.length, "clear to sell", un.length ? "" : "good") +
+      M.stat("Unsecured", un.length, "cannot go on sale", un.length ? "bad" : "good") +
+      M.stat("Royalties committed", M.money(d.productions.reduce(function (s,p) { return s + (p.royalty||0); }, 0)), "quoted and signed") +
+    '</div>'));
+
+  var rows = d.productions.map(function (p) {
+    var lic = M.LICENSORS.filter(function (l) { return l.k === p.licensor; })[0];
+    var ok = M.canGoOnSale(p);
+    return '<tr><td><div class="t-main">' + M.esc(p.title) + '</div>' +
+      '<div class="t-sub">' + M.esc(p.type) + ' · opens ' + M.esc(p.opens) + ' · ' + p.perfs + ' performances</div></td>' +
+      '<td>' + M.esc(lic ? lic.name : p.licensor) + '</td>' +
+      '<td>' + M.tag(p.rights, ok ? "good" : (p.rights === "Quoted" ? "watch" : "bad")) + '</td>' +
+      '<td class="num">' + (p.royalty ? M.money(p.royalty) : "—") + '</td>' +
+      '<td>' + (ok ? '<button class="btn ghost sm sell" data-id="' + p.id + '">Put on sale</button>'
+                   : '<button class="btn ghost sm blocked" data-id="' + p.id + '" title="Rights not secured">Blocked</button>') + '</td></tr>';
+  }).join("");
+  c.appendChild(M.card(
+    '<h2>Every slot in the season</h2>' +
+    '<div class="card-sub">Licensors quote per production and per performance. There is no published rate card — this room records what <i>you</i> were quoted, and never asserts a market rate.</div>' +
+    '<table><thead><tr><th>Production</th><th>Licensor</th><th>Rights</th><th class="num">Royalty</th><th></th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table>' +
+    M.srcNote("Licensor list: Music Theatre International, Concord Theatricals / Samuel French, Dramatists Play Service, Theatrical Rights Worldwide, Broadway Licensing. Royalty terms are quoted, not published.")));
+
+  c.appendChild(M.card(
+    '<h2>What Counsel says about performing rights</h2>' +
+    '<div class="lawgrade clear">🟢 CLEAR — settled + cited</div>' +
+    '<ul class="reasons">' +
+      '<li><span class="rtag data">STATUTE</span><span>Public performance of a copyrighted work requires permission from the rights holder. Buying scripts is not permission.</span></li>' +
+      '<li><span class="rtag data">PRECEDENT</span><span>Licensors quote per production and per performance; terms and restrictions travel with the licence.</span></li>' +
+      '<li><span class="rtag assumption">CHAIR</span><span>No show goes on sale without a secured licence. The OS gates it.</span></li>' +
+    '</ul>' + M.srcNote("Counsel is a knowledge desk, not a lawyer, and this is not legal advice. For anything binding, hire a licensed Idaho attorney.")));
+
+  setTimeout(function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".blocked"), function (b) {
+      b.addEventListener("click", function () {
+        var p = d.productions.filter(function (x) { return x.id === this.dataset.id; }.bind(this))[0];
+        M.toast("Blocked — " + p.title + " has rights " + p.rights.toLowerCase() + ".", "bad");
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".sell"), function (b) {
+      b.addEventListener("click", function () {
+        var id = this.dataset.id;
+        var p = d.productions.filter(function (x) { return x.id === id; })[0];
+        M.stage("Publish", "Put " + p.title + " on sale", "Opens public sales for " + p.perfs + " performances.", "Rights & Royalties");
+        M.toast("Staged on the Approval Desk — nothing published.", "ok");
+      });
+    });
+  }, 0);
+})();
+</script>
+</body>
+</html>

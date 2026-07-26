@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sponsorship · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"sponsors.html", crumb:"Sponsorship" });
+  c.appendChild(M.page("Sponsorship",
+    "A sponsorship is not a logo on a wall. It is inventory the house promised to deliver — and unshipped benefits are the most common reason a local sponsor quietly does not renew."));
+
+  var gaps = M.sponsorGaps(d);
+  var total = d.sponsors.reduce(function (s,x) { return s + x.amt; }, 0);
+  c.appendChild(M.card(
+    '<h2>The sponsor book</h2>' +
+    '<div class="statrow">' +
+      M.stat("Sponsors", d.sponsors.length, "on the books") +
+      M.stat("Committed", M.money(total), "this season") +
+      M.stat("Unshipped benefits", gaps.length, "promised, not delivered", gaps.length ? "bad" : "good") +
+      M.stat("Longest relationship", Math.max.apply(null, d.sponsors.map(function (s) { return 2026 - s.since; })) + " yrs", "the ones you cannot lose") +
+    '</div>'));
+
+  d.sponsors.forEach(function (s) {
+    var lvl = M.SPONSOR_LEVELS.filter(function (l) { return l.k === s.level; })[0];
+    var items = Object.keys(s.fulfil || {});
+    var done = items.filter(function (i) { return s.fulfil[i]; }).length;
+    c.appendChild(M.card(
+      '<div class="between"><div><h2 style="font-size:16px">' + M.esc(s.name) + '</h2>' +
+      '<div class="card-sub">' + M.esc(lvl ? lvl.name : s.level) + ' · ' + M.money(s.amt) +
+      ' · sponsor since ' + s.since + ' · renews ' + M.esc(s.renews) + '</div></div>' +
+      M.tag(done + "/" + items.length + " delivered", done === items.length ? "good" : "bad") + '</div>' +
+      '<div class="divider"></div>' +
+      '<table><thead><tr><th>What we promised</th><th>Shipped</th></tr></thead><tbody>' +
+      items.map(function (i) {
+        return '<tr><td>' + M.esc(i) + '</td><td>' + (s.fulfil[i] ? M.tag("Delivered", "good") : M.tag("Outstanding", "bad")) + '</td></tr>';
+      }).join("") + '</tbody></table>'));
+  });
+})();
+</script>
+</body>
+</html>

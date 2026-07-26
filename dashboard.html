@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Command Center · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"dashboard.html", crumb:"Command Center" });
+
+  c.appendChild(M.page("Command Center",
+    "The whole house on one sheet. Every number below is computed from this OS's own record — not typed in, not rebuilt at the end of the season.",
+    '<button class="btn brass sm" id="askCOO">Ask the Managing Director</button>'));
+
+  /* ---- the board. No target bands: the sector benchmarks are not sourced. */
+  var k = M.kpis();
+  function fmt(x) {
+    if (x.fmt === "money") return M.money(x.value);
+    if (x.fmt === "pct")   return M.pct(x.value, 1);
+    if (x.fmt === "hours") return M.hours(x.value);
+    return x.value;
+  }
+  c.appendChild(M.card(
+    '<h2>The house, by the numbers</h2>' +
+    '<div class="card-sub"><b>Revenue kept</b> is the one a board remembers — what stayed in the house instead of going to a platform that charges by the seat.</div>' +
+    '<div class="statrow">' + k.map(function (x) { return M.stat(x.label, fmt(x), x.note || "", x.band || ""); }).join("") + '</div>' +
+    M.srcNote("No sector target bands are shown. TCG, AFP and Independent Sector figures are not sourced in this build — the room reports this house's own numbers and nothing else.")
+  ));
+
+  /* ---- the gate. This is the room's reason to exist. */
+  var un = M.rightsUnsecured(d);
+  var gate = M.card(
+    '<h2>Needs your attention</h2>' +
+    '<ul class="reasons">' +
+      (un.length ? '<li><span class="rtag assumption">RIGHTS</span><span><b>' + un.length +
+        ' of ' + d.productions.length + ' productions do not hold secured rights.</b> ' +
+        M.esc(un.map(function (p) { return p.title + " — " + p.rights.toLowerCase(); }).join("; ")) +
+        '. None can go on sale until the licensor confirms.</span></li>' : '') +
+      '<li><span class="rtag data">TAX</span><span>' + M.money(M.salesTaxOwed(d)) +
+        ' of Idaho sales tax is owed on admissions collected so far.</span></li>' +
+      '<li><span class="rtag data">GIVING</span><span>' + M.unacknowledgedGifts(d).length +
+        ' gifts have no acknowledgment on file.</span></li>' +
+      '<li><span class="rtag data">SPONSORS</span><span>' + M.sponsorGaps(d).length +
+        ' promised sponsor benefits have not shipped yet.</span></li>' +
+      '<li><span class="rtag data">SHOWS</span><span>' + M.openTasks(d).length +
+        ' production tasks still open across the season.</span></li>' +
+    '</ul>', "watchcard");
+  c.appendChild(gate);
+
+  var grid = document.createElement("div"); grid.className = "grid g2";
+
+  /* ---- the season */
+  var rows = d.productions.map(function (p) {
+    var ok = M.canGoOnSale(p);
+    return '<tr><td><div class="t-main">' + M.esc(p.title) + '</div>' +
+      '<div class="t-sub">' + M.esc(p.type) + ' · ' + M.esc(p.opens) + '</div></td>' +
+      '<td>' + M.tag(p.stage, p.stage === "Running" ? "good" : "ghost") + '</td>' +
+      '<td>' + M.tag(p.rights, ok ? "good" : "bad") + '</td>' +
+      '<td class="num">' + M.money(p.budget) + '<div class="t-sub">' + M.money(p.spend) + ' spent</div></td></tr>';
+  }).join("");
+  grid.appendChild(M.card(
+    '<h2>The season</h2>' +
+    '<div class="card-sub">Six slots. A slot without secured rights is a hole in the season, not a show — so the OS shows the rights state next to the stage, every time.</div>' +
+    '<table><thead><tr><th>Production</th><th>Stage</th><th>Rights</th><th class="num">Budget</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table>'));
+
+  /* ---- earned vs given */
+  var e = M.earnedTotal(d), g = M.contributedTotal(d), t = e + g;
+  grid.appendChild(M.card(
+    '<h2>Earned against given</h2>' +
+    '<div class="card-sub">A commercial house lives on ticket income. A playhouse lives on both, and the mix is the business.</div>' +
+    '<div class="statrow">' +
+      M.stat("Earned", M.money(e), M.pct(e / t * 100, 1) + " of revenue") +
+      M.stat("Contributed", M.money(g), M.pct(g / t * 100, 1) + " of revenue") +
+    '</div>' +
+    '<table><tbody>' +
+      '<tr><td>Single tickets</td><td class="num">' + M.money(M.ticketRevenue(d)) + '</td></tr>' +
+      '<tr><td>Season packages</td><td class="num">' + M.money(M.subscriptionRevenue(d)) + '</td></tr>' +
+      '<tr><td>Tuition, net of scholarship</td><td class="num">' + M.money(M.tuitionRevenue(d)) + '</td></tr>' +
+      '<tr><td>Concessions, rental, merch</td><td class="num">' + M.money(M.otherEarned(d)) + '</td></tr>' +
+      '<tr><td>Gifts, grants &amp; the gala</td><td class="num">' + M.money(g - d.sponsors.reduce(function (s, x) { return s + x.amt; }, 0)) + '</td></tr>' +
+      '<tr><td>Sponsorship</td><td class="num">' + M.money(d.sponsors.reduce(function (s, x) { return s + x.amt; }, 0)) + '</td></tr>' +
+    '</tbody></table>'));
+  c.appendChild(grid);
+
+  /* ---- what it replaces */
+  c.appendChild(M.card(
+    '<h2>What this replaces</h2>' +
+    '<div class="card-sub">We price against the stack it retires. Where a vendor does not publish a price, we say so rather than inventing one.</div>' +
+    '<table><thead><tr><th>Today</th><th>What it costs</th></tr></thead><tbody>' +
+    M.REPLACES.map(function (r) {
+      return '<tr><td><div class="t-main">' + M.esc(r.tool) + '</div><div class="t-sub">' + M.esc(r.job) + '</div></td>' +
+        '<td class="k">' + M.esc(r.cost) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  /* ---- ask the org */
+  c.appendChild(M.card(
+    '<h2>Ask the Managing Director</h2>' +
+    '<div class="card-sub">She reads the ask, routes it to the right department, lets that chain work under its own confidence bar, and packages one answer back. Anything legal goes to Counsel and comes back graded.</div>' +
+    '<div class="row" style="margin-bottom:12px">' +
+      '<input id="q" placeholder="e.g. Which shows do not have rights?" style="flex:1;min-width:260px">' +
+      '<button class="btn brass" id="go">Route it</button></div>' +
+    '<div class="row" style="gap:6px;margin-bottom:4px">' +
+      ["Which shows do not have rights?",
+       "Can we move grant money to another show?",
+       "Are our tickets tax deductible?",
+       "Which sponsors have unshipped benefits?",
+       "How many volunteer hours do we have?"].map(function (s) {
+        return '<button class="btn ghost sm ex" data-q="' + M.esc(s) + '">' + M.esc(s) + '</button>';
+      }).join("") +
+    '</div><div id="out"></div>', "nora"));
+
+  function render(r) {
+    var v = r.result.verdict, dept = r.dept, passed = r.result.passed;
+    var grade = v.grade ? M.LAW_GRADES[v.grade] : null;
+    document.getElementById("out").innerHTML =
+      '<div class="divider"></div>' +
+      (grade ? '<div class="lawgrade ' + v.grade.toLowerCase() + '">' + grade.dot + ' ' + M.esc(grade.label) + '</div>' : '') +
+      '<div class="' + (passed ? "busrow conclude" : "busrow reject") + '" style="display:block">' +
+        '<div class="bus-topic">' + (passed ? "released" : "escalated") + '</div>' +
+        '<div class="bus-body" style="margin-top:5px">' + M.esc(r.packaged) + '</div></div>' +
+      '<div class="conf"><span class="muted small">' + M.esc(dept.name) + ' · bar ' + dept.gate + '%</span>' +
+        '<span class="conf-bar"><i class="conf-fill ' + (passed ? "" : "under") + '" style="width:' + Math.min(100, v.conf) + '%"></i>' +
+        '<span class="conf-gate" style="left:' + dept.gate + '%"></span></span>' +
+        '<span class="conf-n">' + v.conf + '%</span></div>' +
+      '<ul class="reasons">' + v.reasons.map(function (x) {
+        return '<li><span class="rtag ' + x.t + '">' + x.t.toUpperCase() + '</span><span>' + M.esc(x.s) + '</span></li>';
+      }).join("") + '</ul>' +
+      '<div class="srcnote">Routed ' + M.esc(dept.dh.name) + ' (DH) → ' + M.esc(dept.ae.name) +
+        ' (AE) → ' + M.esc(dept.pace.name) + ' (Pacemaker) → ' + M.esc(dept.lensA.name) + ' / ' +
+        M.esc(dept.lensB.name) + ' (opposing lenses). Full trace on the Agent Org page.</div>';
+  }
+  function ask(q) { if (!q) { M.toast("Type a question first.", ""); return; } render(M.askCOO(q)); }
+  setTimeout(function () {
+    document.getElementById("go").addEventListener("click", function () { ask(document.getElementById("q").value.trim()); });
+    document.getElementById("q").addEventListener("keydown", function (e) { if (e.key === "Enter") ask(this.value.trim()); });
+    Array.prototype.forEach.call(document.querySelectorAll(".ex"), function (b) {
+      b.addEventListener("click", function () { document.getElementById("q").value = this.dataset.q; ask(this.dataset.q); });
+    });
+    var a = document.getElementById("askCOO");
+    if (a) a.addEventListener("click", function () {
+      document.getElementById("q").scrollIntoView({ behavior:"smooth", block:"center" });
+      document.getElementById("q").focus();
+    });
+  }, 0);
+})();
+</script>
+</body>
+</html>

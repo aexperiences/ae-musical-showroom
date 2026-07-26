@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patrons · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"patrons.html", crumb:"Patrons" });
+  c.appendChild(M.page("Patrons & Subscribers",
+    "Season packages are the house's working capital — the money arrives before the season's costs do. This room is who bought, and what it is worth."));
+
+  var subs = d.packages.reduce(function (s,p) { return s + p.sold; }, 0);
+  c.appendChild(M.card(
+    '<h2>The season on subscription</h2>' +
+    '<div class="statrow">' +
+      M.stat("Packages sold", subs.toLocaleString(), "across " + d.packages.length + " types") +
+      M.stat("Subscription revenue", M.money(M.subscriptionRevenue(d)), "banked before opening night", "good") +
+      M.stat("Share of earned income", M.pct(M.subscriptionRevenue(d) / M.earnedTotal(d) * 100, 1), "of everything earned") +
+    '</div>' +
+    '<table><thead><tr><th>Package</th><th class="num">Price</th><th class="num">Sold</th><th class="num">Value</th></tr></thead><tbody>' +
+    d.packages.map(function (p) {
+      return '<tr><td><div class="t-main">' + M.esc(p.name) + '</div><div class="t-sub">' + M.esc(p.note) + '</div></td>' +
+        '<td class="num">' + M.money(p.price) + '</td><td class="num">' + p.sold + '</td>' +
+        '<td class="num"><b>' + M.money(p.price * p.sold) + '</b></td></tr>';
+    }).join("") + '</tbody></table>' +
+    M.srcNote("Renewal rate is not computed on this floor — last season's subscriber list is not in the seed, and a renewal rate without a prior year is a made-up number.")));
+})();
+</script>
+</body>
+</html>

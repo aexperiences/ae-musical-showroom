@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Org · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"org.html", crumb:"Agent Org · Bus" });
+  c.appendChild(M.page("Agent Org · Event Bus",
+    "A department chain behind every room. Two opposing lenses that never confer, and a pacemaker that holds a confidence bar — 85% on Money, Rights and Law, 80% everywhere else."));
+
+  c.appendChild(M.card(
+    '<h2>The chain</h2>' +
+    '<div class="card-sub">Managing Director → Department Head → Administrative Executive → the bus → Pacemaker → two opposing lenses. She gates and packages; she does not do the work.</div>' +
+    '<table><thead><tr><th>Department</th><th>Head</th><th>Pacemaker</th><th>The two lenses</th><th class="num">Bar</th></tr></thead><tbody>' +
+    Object.keys(M.SEATS).map(function (k) {
+      var s = M.SEATS[k];
+      return '<tr><td><div class="t-main">' + M.esc(s.name) + '</div></td>' +
+        '<td><div class="t-main">' + M.esc(s.dh.name) + '</div><div class="t-sub">' + M.esc(s.dh.t) + '</div></td>' +
+        '<td>' + M.esc(s.pace.name) + '</td>' +
+        '<td><div class="t-sub">' + M.esc(s.lensA.name) + ' — ' + M.esc(s.lensA.t) + '</div>' +
+        '<div class="t-sub">' + M.esc(s.lensB.name) + ' — ' + M.esc(s.lensB.t) + '</div></td>' +
+        '<td class="num"><b>' + s.gate + '%</b></td></tr>';
+    }).join("") + '</tbody></table>'));
+
+  c.appendChild(M.card(
+    '<h2>Watch the bus</h2>' +
+    '<div class="card-sub">Ask anything. The whole trace is shown — including when the answer failed to clear its own bar and was escalated instead of released.</div>' +
+    '<div class="row" style="margin-bottom:12px">' +
+      '<input id="q" placeholder="e.g. Which sponsors have unshipped benefits?" style="flex:1;min-width:280px">' +
+      '<button class="btn brass" id="go">Route it</button></div>' +
+    '<div class="row" style="gap:6px">' +
+      ["Which shows do not have rights?","How is the season doing financially?",
+       "How many volunteer hours do we have?","Can we use grant money for a different show?",
+       "Which classes are under half full?"].map(function (s) {
+        return '<button class="btn ghost sm ex" data-q="' + M.esc(s) + '">' + M.esc(s) + '</button>'; }).join("") +
+    '</div><div id="out"></div>', "nora"));
+
+  function render(r) {
+    var v = r.result.verdict, dept = r.dept, passed = r.result.passed;
+    var g = v.grade ? M.LAW_GRADES[v.grade] : null;
+    document.getElementById("out").innerHTML =
+      '<div class="divider"></div>' +
+      (g ? '<div class="lawgrade ' + v.grade.toLowerCase() + '">' + g.dot + ' ' + M.esc(g.label) + '</div>' : '') +
+      r.trace.map(function (t) {
+        return '<div class="busrow"><div class="bus-topic">' + M.esc(t.topic) + '</div>' +
+          '<div class="bus-body">' + M.esc(t.body) + '</div></div>';
+      }).join("") +
+      '<div class="conf"><span class="muted small">' + M.esc(dept.name) + ' · bar ' + dept.gate + '%</span>' +
+        '<span class="conf-bar"><i class="conf-fill ' + (passed ? "" : "under") + '" style="width:' + Math.min(100, v.conf) + '%"></i>' +
+        '<span class="conf-gate" style="left:' + dept.gate + '%"></span></span>' +
+        '<span class="conf-n">' + v.conf + '%</span></div>' +
+      '<ul class="reasons">' + v.reasons.map(function (x) {
+        return '<li><span class="rtag ' + x.t + '">' + x.t.toUpperCase() + '</span><span>' + M.esc(x.s) + '</span></li>';
+      }).join("") + '</ul>';
+  }
+  setTimeout(function () {
+    function ask(q) { if (!q) { M.toast("Type a question first.", ""); return; } render(M.consult(q)); }
+    document.getElementById("go").addEventListener("click", function () { ask(document.getElementById("q").value.trim()); });
+    document.getElementById("q").addEventListener("keydown", function (e) { if (e.key === "Enter") ask(this.value.trim()); });
+    Array.prototype.forEach.call(document.querySelectorAll(".ex"), function (b) {
+      b.addEventListener("click", function () { document.getElementById("q").value = this.dataset.q; ask(this.dataset.q); });
+    });
+  }, 0);
+})();
+</script>
+</body>
+</html>

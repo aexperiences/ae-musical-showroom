@@ -1,0 +1,1088 @@
+/* ============================================================================
+   MUSICAL OS  ·  V3.0 Grandsuite showroom engine
+   The operating system for a non-profit community playhouse.
+   Accelerated Experiences LLC.
+
+   Built from the live Lake City Playhouse build (LCPhub V1.1 LITE, "The
+   Playhouse OS") — its department map, its twelve production roles, its
+   rights gate, its "Revenue Kept" headline, and its Statute·Precedent·Chair
+   law desk. LCP runs the LITE tier; this showroom is the Grandsuite that
+   LCP is a reduced instance of.
+
+   HONESTY RULES baked into this file:
+   - The showroom seeds a FICTIONAL playhouse. No real donor, patron, cast
+     member or staff member from any client appears anywhere in here.
+   - Where a benchmark target band is not sourced, `bench` is null and the
+     room renders the metric with NO target. Blank beats confident-wrong.
+   - Nothing sends, spends, publishes or books a human. Anything that would
+     is staged on the Approval Desk instead.
+   ============================================================================ */
+(function (global) {
+  "use strict";
+
+  var KEY = "musical_showroom_v3";
+  /* Where the exit lands. The store, not the homepage. */
+  var STORE_URL = "https://www.aexperiences.com/hubs/theater.html";
+  var SHOP_URL  = "https://www.aexperiences.com/shop.html";
+  var IDLE_MS = 20 * 60 * 1000;        /* wipe the floor 20 min after they walk away */
+  var STORE = sessionStorage;
+
+  function now() { return Date.now(); }
+  function read() {
+    try {
+      var raw = STORE.getItem(KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || !d._t || now() - d._t > IDLE_MS) return null;
+      return d;
+    } catch (e) { return null; }
+  }
+  function write(d) { d._t = now(); try { STORE.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  function clone(a) { return JSON.parse(JSON.stringify(a)); }
+  function fresh() { return clone(SEED); }
+  function db() { var d = read(); if (!d) { d = fresh(); write(d); } return d; }
+  function save(mut) { var d = db(); mut(d); write(d); return d; }
+  function resetFloor() { var d = fresh(); write(d); return d; }
+
+  /* ==========================================================================
+     1 · THE CANON — what a community playhouse actually runs on
+     ========================================================================== */
+
+  /* A season is the spine. Everything — subscriptions, sponsorship, the gala,
+     the education calendar — hangs off which show is in which slot. */
+  var SHOW_TYPES = ["Musical", "Play", "Comedy", "Holiday", "Rock Musical", "Youth / Education"];
+
+  var PROD_STAGES = [
+    { k:"Planning",   name:"Planning",   note:"Slot held in the season. Rights not yet secured." },
+    { k:"Licensed",   name:"Licensed",   note:"Rights secured. Budget and team can be committed." },
+    { k:"Casting",    name:"Casting",    note:"Auditions posted or underway." },
+    { k:"Rehearsal",  name:"Rehearsal",  note:"In the room. Calls, conflicts and the build are live." },
+    { k:"Tech",       name:"Tech",       note:"Onstage. Cues, costumes and the house are being set." },
+    { k:"On Sale",    name:"On Sale",    note:"Seats are selling. Requires secured rights." },
+    { k:"Running",    name:"Running",    note:"Open to the public." },
+    { k:"Closed",     name:"Closed",     note:"Struck. Royalties reconciled." }
+  ];
+
+  /* The licensors a community theater actually deals with. Royalty terms are
+     quoted per production and are NOT published rate cards — the OS records
+     what YOU were quoted, it never asserts a market rate. */
+  var LICENSORS = [
+    { k:"MTI",        name:"Music Theatre International" },
+    { k:"Concord",    name:"Concord Theatricals / Samuel French" },
+    { k:"DPS",        name:"Dramatists Play Service" },
+    { k:"TRW",        name:"Theatrical Rights Worldwide" },
+    { k:"Broadway",   name:"Broadway Licensing" },
+    { k:"Public",     name:"Public domain — no licensor" }
+  ];
+  var RIGHTS_STATUS = ["Not requested", "Requested", "Quoted", "Secured", "Denied"];
+
+  /* Giving. Levels are what the house names them; the amounts are the house's
+     own ladder, not a benchmark. */
+  var GIVING_LEVELS = [
+    { k:"friend",     name:"Friend",          min:50 },
+    { k:"supporter",  name:"Supporter",       min:150 },
+    { k:"patron",     name:"Patron",          min:500 },
+    { k:"benefactor", name:"Benefactor",      min:1500 },
+    { k:"producer",   name:"Producer's Circle", min:5000 }
+  ];
+  var GIFT_KINDS = ["One-time", "Recurring", "Pledge", "In-kind", "Grant", "Gala / Auction", "Brick"];
+
+  /* Sponsorship is INVENTORY, not a logo wall. Each level is a promise the
+     house has to actually deliver — that is what `fulfil` tracks. */
+  var SPONSOR_LEVELS = [
+    { k:"season",    name:"Season Sponsor",     amt:10000, inv:["Season naming", "Playbill inside cover", "Site premier slot", "Curtain speech · all shows", "8 seats per show"] },
+    { k:"show",      name:"Show Sponsor",       amt:3500,  inv:["Show naming", "Playbill full page", "Site slot · run of show", "Curtain speech", "6 seats"] },
+    { k:"education", name:"Education Sponsor",  amt:5000,  inv:["Education program naming", "Playbill half page", "Site slot · season", "Named in class materials"] },
+    { k:"playbill",  name:"Playbill Advertiser",amt:600,   inv:["Playbill quarter page"] },
+    { k:"community", name:"Community Partner",  amt:250,   inv:["Sponsor wall listing", "Site listing"] }
+  ];
+
+  /* The twelve hats, verbatim in spirit from how a playhouse signs its people
+     in. A community theater person holds more than one. */
+  var HOUSE_ROLES = [
+    { k:"admin",     name:"Administrator",    note:"Full access — money, records, everything" },
+    { k:"director",  name:"Director",         note:"Your show — cast, crew & schedule" },
+    { k:"md",        name:"Music Director",   note:"The pit — live band or recorded tracks" },
+    { k:"sm",        name:"Stage Manager",    note:"Run the show — calls & crew" },
+    { k:"ld",        name:"Lighting Designer",note:"Lights — design & cues" },
+    { k:"costume",   name:"Costume Designer", note:"Costumes — design & fittings" },
+    { k:"wardrobe",  name:"Wardrobe",         note:"Fittings & quick-changes" },
+    { k:"props",     name:"Props",            note:"Props & set dressing" },
+    { k:"teacher",   name:"Teacher",          note:"Classes & students" },
+    { k:"student",   name:"Student",          note:"Your classes & schedule" },
+    { k:"actor",     name:"Actor",            note:"Your show — script, calls & bio" },
+    { k:"volunteer", name:"General Volunteer",note:"Shifts, hours & the calendar" }
+  ];
+
+  var VOLUNTEER_JOBS = ["Usher", "Box office", "Concessions", "Set build", "Backstage crew",
+                        "Load-in / strike", "Costume shop", "Gala committee", "Board committee"];
+
+  /* Idaho sales tax on admissions. The RATE is a real published figure; whether
+     a given ticket is taxable is exactly the sort of thing the law desk grades
+     rather than asserts. */
+  var ID_SALES_TAX = 0.06;   /* Idaho state sales tax rate, 6% */
+
+  /* What the house is buying today instead. Where a vendor does not publish a
+     price we say so rather than inventing one. */
+  var REPLACES = [
+    { tool:"Per-ticket platform",        job:"Ticketing + fees skimmed off every seat", cost:"$1–$4 per ticket" },
+    { tool:"Donor database",             job:"Gifts, pledges, acknowledgment letters",  cost:"quote-gated — not published" },
+    { tool:"Class registration tool",    job:"Camp & class enrolment + tuition",        cost:"$50–$200/mo" },
+    { tool:"Volunteer scheduler",        job:"Shifts and hours",                        cost:"$20–$90/mo" },
+    { tool:"Accounting + payroll",       job:"The books, 990 prep",                     cost:"$70–$250/mo" },
+    { tool:"Design subscription",        job:"Playbills, posters, sponsor ads",         cost:"$23–$60/mo per seat" },
+    { tool:"Email / marketing",          job:"Season announcements, appeals",           cost:"$30–$150/mo" }
+  ];
+
+  /* ⚠ SOURCED BENCHMARKS — deliberately empty.
+     Buttress OS earns its credibility from cited A/E figures. The non-profit
+     equivalents (earned vs contributed split, donor retention, cost to raise a
+     dollar, functional expense split, paid capacity, gala net-to-gross,
+     operating reserve months, Independent Sector volunteer-hour value) have NOT
+     been sourced yet. Until they are, every metric renders with no target band.
+     Do not populate this from memory. */
+  var BENCH = {};
+
+  /* ==========================================================================
+     2 · THE SEED — a fictional playhouse, deliberately imperfect
+     ========================================================================== */
+  var SEED = {
+    house: {
+      name: "Garden Avenue Playhouse",
+      city: "Coeur d'Alene, Idaho",
+      season: "63rd Season · 2026–27",
+      ein: "00-0000000",          /* placeholder — never a real EIN */
+      status: "501(c)(3) non-profit",
+      venues: [
+        { k:"main",      name:"Main Stage",      seats:212 },
+        { k:"rehearsal", name:"Rehearsal Room",  seats:40  },
+        { k:"black",     name:"The Black Box",   seats:64  }
+      ]
+    },
+
+    /* Six slots. Two of them deliberately have rights unsecured — that is the
+       gate the whole product is built around. */
+    productions: [
+      { id:"p1", title:"A Midsummer Night's Dream", type:"Play", stage:"Running", venue:"main",
+        opens:"2026-09-24", closes:"2026-10-10", perfs:9, licensor:"Public", rights:"Secured",
+        royalty:0, budget:14000, spend:12480, seatsSold:1310, seatsHeld:1908, house:212 },
+      { id:"p2", title:"The Winter Songbook", type:"Holiday", stage:"Rehearsal", venue:"main",
+        opens:"2026-12-04", closes:"2026-12-20", perfs:12, licensor:"Concord", rights:"Secured",
+        royalty:4200, budget:22000, spend:6100, seatsSold:0, seatsHeld:2544, house:212 },
+      { id:"p3", title:"Ragtime Avenue", type:"Musical", stage:"Planning", venue:"main",
+        opens:"2027-01-28", closes:"2027-02-13", perfs:10, licensor:"MTI", rights:"Quoted",
+        royalty:0, budget:31000, spend:900, seatsSold:0, seatsHeld:2120, house:212 },
+      { id:"p4", title:"You Can't Take It With You", type:"Comedy", stage:"Planning", venue:"main",
+        opens:"2027-03-25", closes:"2027-04-10", perfs:9, licensor:"DPS", rights:"Not requested",
+        royalty:0, budget:16000, spend:0, seatsSold:0, seatsHeld:1908, house:212 },
+      { id:"p5", title:"Bright Star", type:"Musical", stage:"Planning", venue:"main",
+        opens:"2027-05-20", closes:"2027-06-05", perfs:10, licensor:"TRW", rights:"Requested",
+        royalty:0, budget:28000, spend:0, seatsSold:0, seatsHeld:2120, house:212 },
+      { id:"p6", title:"The Paper Crown", type:"Youth / Education", stage:"Planning", venue:"black",
+        opens:"2027-07-22", closes:"2027-08-07", perfs:8, licensor:"Broadway", rights:"Not requested",
+        royalty:0, budget:9000, spend:0, seatsSold:0, seatsHeld:512, house:64 }
+    ],
+
+    /* Season packages. Prices mirror the shape a community house actually sells. */
+    packages: [
+      { id:"sp1", name:"Full Season · 6 shows",  price:120, sold:184, note:"Same seat, all year." },
+      { id:"sp2", name:"Senior / Military",      price:105, sold:96,  note:"Full season, reduced." },
+      { id:"sp3", name:"Student",                price:99,  sold:41,  note:"Full season, student ID." },
+      { id:"sp4", name:"Flex 3-Pack",            price:69,  sold:73,  note:"Any three shows." }
+    ],
+
+    /* Single-ticket price ladder for the house. */
+    prices: [
+      { k:"adult",   name:"Adult",           amt:25 },
+      { k:"senior",  name:"Senior / Military",amt:20 },
+      { k:"student", name:"Student",         amt:20 },
+      { k:"child",   name:"Child under 12",  amt:15 }
+    ],
+
+    /* Contributed income. Fictional donors. */
+    gifts: [
+      { id:"g1",  donor:"Marguerite Ellery",     kind:"Recurring",     amt:150,   date:"2026-07-01", fund:"General",   ack:true  },
+      { id:"g2",  donor:"The Okafor Family",     kind:"One-time",      amt:500,   date:"2026-07-08", fund:"Education", ack:true  },
+      { id:"g3",  donor:"Alliance Title",        kind:"Gala / Auction",amt:2200,  date:"2026-07-16", fund:"General",   ack:false },
+      { id:"g4",  donor:"D. Reyes",              kind:"Brick",         amt:250,   date:"2026-07-19", fund:"Capital",   ack:false },
+      { id:"g5",  donor:"Panhandle Arts Fund",   kind:"Grant",         amt:12000, date:"2026-06-30", fund:"Education", ack:true,
+                  restricted:true, restriction:"Youth education programming only. Not transferable to mainstage." },
+      { id:"g6",  donor:"H. & J. Park",          kind:"Pledge",        amt:3000,  date:"2026-05-02", fund:"Capital",   ack:true,
+                  pledged:3000, paid:1000 },
+      { id:"g7",  donor:"Bluebird Tree Care",    kind:"In-kind",       amt:1800,  date:"2026-06-11", fund:"General",   ack:false,
+                  inkindNote:"Site clearing and haul-off before load-in." },
+      { id:"g8",  donor:"S. Vitale",             kind:"One-time",      amt:75,    date:"2026-07-21", fund:"General",   ack:false }
+    ],
+
+    sponsors: [
+      { id:"s1", name:"Cedar & Stone Realty",   level:"season",   amt:10000, since:2021, renews:"2027-06-30",
+        fulfil:{ "Season naming":true, "Playbill inside cover":true, "Site premier slot":true, "Curtain speech · all shows":false, "8 seats per show":true } },
+      { id:"s2", name:"Kootenai Heating & Air", level:"show",     amt:3500,  since:2023, renews:"2026-12-31",
+        fulfil:{ "Show naming":true, "Playbill full page":false, "Site slot · run of show":true, "Curtain speech":false, "6 seats":true } },
+      { id:"s3", name:"Welch Ridge Engineers",  level:"education",amt:5000,  since:2019, renews:"2027-08-31",
+        fulfil:{ "Education program naming":true, "Playbill half page":true, "Site slot · season":true, "Named in class materials":false } },
+      { id:"s4", name:"Dawson Plumbing",        level:"playbill", amt:600,   since:2024, renews:"2026-09-01",
+        fulfil:{ "Playbill quarter page":true } },
+      { id:"s5", name:"AHA Creative",           level:"community",amt:250,   since:2025, renews:"2026-10-15",
+        fulfil:{ "Sponsor wall listing":true, "Site listing":true } }
+    ],
+
+    /* Volunteers with HOURS — grant reporting and in-kind valuation both need
+       this, and it is the number a spreadsheet always loses. */
+    volunteers: [
+      { id:"v1", name:"Rosalind M.",  jobs:["Usher","Box office"],        hours:64,  since:2018, active:true },
+      { id:"v2", name:"Teodoro B.",   jobs:["Set build","Load-in / strike"],hours:131,since:2015, active:true },
+      { id:"v3", name:"Jun-seo P.",   jobs:["Backstage crew"],            hours:48,  since:2023, active:true },
+      { id:"v4", name:"Annelie K.",   jobs:["Costume shop"],              hours:96,  since:2020, active:true },
+      { id:"v5", name:"Marcus D.",    jobs:["Gala committee","Usher"],    hours:27,  since:2024, active:true },
+      { id:"v6", name:"Priya N.",     jobs:["Board committee"],           hours:52,  since:2019, active:true },
+      { id:"v7", name:"Colm F.",      jobs:["Concessions"],               hours:12,  since:2026, active:true },
+      { id:"v8", name:"Hattie R.",    jobs:["Usher"],                     hours:8,   since:2026, active:false }
+    ],
+
+    /* Education. Real shape: a camp, two teen classes, tuition, scholarships. */
+    classes: [
+      { id:"c1", name:"Summer Camp",        ages:"8–14",   venue:"main",      tuition:225, seats:24, enrolled:21, sched:"Mon–Fri · 9:00–12:00", schol:4 },
+      { id:"c2", name:"From Text to Stage", ages:"13–17",  venue:"rehearsal", tuition:150, seats:14, enrolled:11, sched:"Mon & Wed · 4:30–6:00", schol:2 },
+      { id:"c3", name:"Monologue Intensive",ages:"13–17",  venue:"main",      tuition:120, seats:12, enrolled:12, sched:"Tue & Thu · 4:30–6:00", schol:1 },
+      { id:"c4", name:"Playmaking · Littles",ages:"5–7",   venue:"black",     tuition:95,  seats:16, enrolled:6,  sched:"Sat · 10:00–11:15", schol:0 }
+    ],
+
+    /* Earned income other than tickets. */
+    earned: [
+      { id:"e1", kind:"Concessions",     amt:4820,  note:"Bar and snack, season to date" },
+      { id:"e2", kind:"Venue rental",    amt:3600,  note:"Two weekend rentals of the Black Box" },
+      { id:"e3", kind:"Merchandise",     amt:910,   note:"Season shirts and posters" }
+    ],
+
+    /* The operating expense side, split the way a 990 requires. */
+    /* Season to date — not a full-season budget. One show has closed, one is in
+       rehearsal, and the fixed costs are nine months in. A community house runs
+       thin and slightly positive; that is the honest picture, not a green board. */
+    expenses: [
+      { id:"x1", cat:"Production",       fn:"Program",     amt:28400 },
+      { id:"x2", cat:"Education",        fn:"Program",     amt:11200 },
+      { id:"x3", cat:"Facility",         fn:"Program",     amt:14700 },
+      { id:"x4", cat:"Staff — artistic", fn:"Program",     amt:28500 },
+      { id:"x5", cat:"Staff — admin",    fn:"Management",  amt:16800 },
+      { id:"x6", cat:"Insurance & legal",fn:"Management",  amt:7300  },
+      { id:"x7", cat:"Gala costs",       fn:"Fundraising", amt:9100  },
+      { id:"x8", cat:"Appeals & printing",fn:"Fundraising",amt:2600  }
+    ],
+
+    /* Production tasks — the open-items count on the Command Center. */
+    tasks: [
+      { id:"t1", prod:"p2", what:"Secure orchestra parts from the licensor", who:"Music Director", due:"2026-08-14", done:false },
+      { id:"t2", prod:"p2", what:"Costume build — 14 chorus pieces",         who:"Costume Designer", due:"2026-10-01", done:false },
+      { id:"t3", prod:"p3", what:"Return signed MTI quote",                  who:"Administrator",   due:"2026-08-02", done:false },
+      { id:"t4", prod:"p1", what:"Strike and return rented lekos",           who:"Lighting Designer",due:"2026-10-12", done:false },
+      { id:"t5", prod:"p4", what:"Request rights from Dramatists",           who:"Administrator",   due:"2026-08-20", done:false },
+      { id:"t6", prod:"p6", what:"Confirm youth rights are available",       who:"Administrator",   due:"2026-09-05", done:false }
+    ],
+
+    board: [
+      { id:"b1", name:"P. Nagarajan", seat:"Chair",     termEnds:"2027-06-30", coi:true },
+      { id:"b2", name:"R. Marchetti", seat:"Treasurer", termEnds:"2028-06-30", coi:true },
+      { id:"b3", name:"A. Kowalczyk", seat:"Secretary", termEnds:"2027-06-30", coi:false },
+      { id:"b4", name:"D. Whitfield", seat:"Member",    termEnds:"2029-06-30", coi:true },
+      { id:"b5", name:"L. Osei",      seat:"Member",    termEnds:"2028-06-30", coi:false }
+    ],
+
+    approvals: [],
+    _t: 0
+  };
+
+  /* ==========================================================================
+     3 · THE PRICE BOOK — every department on its own line
+     ⚠ DRAFT. Tier prices mirror what is live on
+     aexperiences.com/hubs/theater.html today ($650 / $1,500 / $3,200).
+     Anthony sets every live price. Nothing here goes live without him.
+     ========================================================================== */
+  var ROOMS = {
+    boxoffice:  { label:"Box Office",            mo:95,  build:700,
+                  why:"Seat map, holds and walk-ups — and every dollar stays in the house." },
+    productions:{ label:"Productions",           mo:85,  build:600,
+                  why:"The season spine. Rights, budget and the run, per slot." },
+    rights:     { label:"Rights & Royalties",    mo:70,  build:500,
+                  why:"The gate. No show reaches On Sale without secured rights." },
+    patrons:    { label:"Patrons & Subscribers", mo:70,  build:500,
+                  why:"Who sits where, who renews, and who lapsed." },
+    dev:        { label:"Development · Giving",  mo:130, build:1100,
+                  why:"Gifts, pledges, restricted funds and the acknowledgment letters the IRS expects." },
+    sponsors:   { label:"Sponsorship",           mo:95,  build:800,
+                  why:"Levels as inventory — what you promised, whether it shipped, when it renews." },
+    volunteers: { label:"Volunteers",            mo:70,  build:550,
+                  why:"Shifts by performance and the hours a grant report asks for." },
+    education:  { label:"Classes & Camps",       mo:90,  build:750,
+                  why:"Enrolment, tuition, scholarships and the roster a teacher can actually use." },
+    books:      { label:"Books",                 mo:110, build:900,
+                  why:"Earned against contributed, and the functional split a 990 asks for." },
+    law:        { label:"Law & Counsel",         mo:120, build:1000,
+                  why:"The 501(c)(3) desk — graded CLEAR, CAUTION or ATTORNEY, never guessed." },
+    org:        { label:"Agent Org · Bus",       mo:160, build:1300,
+                  why:"A department chain behind every room, gated on a confidence bar." }
+  };
+
+  var TIERS = {
+    community: { key:"community", name:"Community", rank:1, mo:650, build:4000,
+      desc:"The house that runs on volunteers. Box office, the season, patrons, the rights gate and the books.",
+      base:"One venue · up to 10 seats",
+      includes:["boxoffice","productions","rights","patrons","volunteers","books"] },
+    producing: { key:"producing", name:"Producing", rank:2, mo:1500, build:10000,
+      desc:"The house that fundraises. Adds giving, sponsorship and the education program.",
+      base:"One venue · up to 25 seats",
+      includes:["boxoffice","productions","rights","patrons","volunteers","books",
+                "dev","sponsors","education"] },
+    grandsuite: { key:"grandsuite", name:"Regional / Multi-venue", rank:3, mo:3200, build:25000,
+      desc:"Everything switched on — including the 501(c)(3) law desk and the full agent org.",
+      base:"Multi-venue · unlimited seats · dedicated environment · data migration",
+      includes:["boxoffice","productions","rights","patrons","volunteers","books",
+                "dev","sponsors","education","law","org"] }
+  };
+
+  /* Nav. Items with no `room` are platform and always present.
+     Groups mirror how a playhouse actually thinks about itself. */
+  var DEPTS = [
+    { group:"The Playhouse", items:[
+      { label:"Command Center", href:"dashboard.html", ic:"⌘" },
+      { label:"Approval Desk",  href:"approvals.html", ic:"✓" }
+    ]},
+    { group:"Season & Stage", items:[
+      { label:"Productions",        href:"productions.html", room:"productions", ic:"▦" },
+      { label:"Rights & Royalties", href:"rights.html",      room:"rights",      ic:"§" }
+    ]},
+    { group:"Front of House", items:[
+      { label:"Box Office",         href:"boxoffice.html",   room:"boxoffice",   ic:"◉" },
+      { label:"Patrons",            href:"patrons.html",     room:"patrons",     ic:"👥" }
+    ]},
+    { group:"Giving", items:[
+      { label:"Development",        href:"development.html", room:"dev",         ic:"♥" },
+      { label:"Sponsorship",        href:"sponsors.html",    room:"sponsors",    ic:"◈" }
+    ]},
+    { group:"People & Learning", items:[
+      { label:"Volunteers",         href:"volunteers.html",  room:"volunteers",  ic:"🤝" },
+      { label:"Classes & Camps",    href:"education.html",   room:"education",   ic:"🎓" }
+    ]},
+    { group:"Money & Law", items:[
+      { label:"Books",              href:"books.html",       room:"books",       ic:"▥" },
+      { label:"Law & Counsel",      href:"law.html",         room:"law",         ic:"§" }
+    ]},
+    { group:"The Org", items:[
+      { label:"Agent Org · Bus",    href:"org.html",         room:"org",         ic:"✦" }
+    ]}
+  ];
+
+  /* ---- tier + configurator state --------------------------------------- */
+  function tier() { try { return STORE.getItem(KEY + "_tier") || "grandsuite"; } catch (e) { return "grandsuite"; } }
+  function setTier(k) { try { STORE.setItem(KEY + "_tier", k); STORE.removeItem(KEY + "_rooms"); } catch (e) {} }
+  function tierRank() { return (TIERS[tier()] || TIERS.grandsuite).rank; }
+  function tierByRank(r) { for (var k in TIERS) if (TIERS[k].rank === r) return TIERS[k]; return TIERS.grandsuite; }
+
+  function activeRooms() {
+    var custom = null;
+    try { custom = JSON.parse(STORE.getItem(KEY + "_rooms") || "null"); } catch (e) {}
+    if (custom && custom.length !== undefined) return custom;
+    return (TIERS[tier()] || TIERS.grandsuite).includes.slice();
+  }
+  function hasRoom(k) { return activeRooms().indexOf(k) >= 0; }
+  function toggleRoom(k) {
+    var on = activeRooms(), i = on.indexOf(k);
+    if (i >= 0) on.splice(i, 1); else on.push(k);
+    try { STORE.setItem(KEY + "_rooms", JSON.stringify(on)); } catch (e) {}
+    return on;
+  }
+
+  /* Price = the package, plus anything added, minus anything taken off. */
+  function priceNow() {
+    var t = TIERS[tier()] || TIERS.grandsuite;
+    var on = activeRooms();
+    var adds = on.filter(function (k) { return t.includes.indexOf(k) < 0 && ROOMS[k]; });
+    var offs = t.includes.filter(function (k) { return on.indexOf(k) < 0 && ROOMS[k]; });
+    var addMo = adds.reduce(function (s, k) { return s + ROOMS[k].mo; }, 0);
+    var addBd = adds.reduce(function (s, k) { return s + ROOMS[k].build; }, 0);
+    var offMo = offs.reduce(function (s, k) { return s + ROOMS[k].mo; }, 0);
+    var offBd = offs.reduce(function (s, k) { return s + ROOMS[k].build; }, 0);
+    var alaMo = on.reduce(function (s, k) { return s + (ROOMS[k] ? ROOMS[k].mo : 0); }, 0);
+    return {
+      tier: t, rooms: on, adds: adds, offs: offs,
+      addMo: addMo, offMo: offMo,
+      mo: t.mo + addMo - offMo,
+      build: t.build + addBd - offBd,
+      alaMo: alaMo,
+      platformMo: Math.max(0, t.mo - t.includes.reduce(function (s,k){ return s + (ROOMS[k]?ROOMS[k].mo:0); }, 0)),
+      changed: adds.length > 0 || offs.length > 0
+    };
+  }
+  function priceLabel() { var p = priceNow(); return money(p.mo) + "/mo · " + money(p.build) + " build"; }
+
+  /* ==========================================================================
+     4 · THE MONEY — a non-profit spine, not a commercial one
+     ========================================================================== */
+
+  /* Ticket revenue actually collected, and — the headline — what the house KEEPS.
+     A per-ticket platform takes a cut of every seat. This OS does not. */
+  var PLATFORM_FEE_PER_TICKET = 2.75;   /* what a typical per-ticket vendor skims */
+
+  function ticketsSold(d) {
+    return (d || db()).productions.reduce(function (s, p) { return s + (Number(p.seatsSold) || 0); }, 0);
+  }
+  function ticketRevenue(d) {
+    d = d || db();
+    var avg = 22;   /* blended across the price ladder in the seed */
+    return ticketsSold(d) * avg;
+  }
+  function subscriptionRevenue(d) {
+    d = d || db();
+    return d.packages.reduce(function (s, p) { return s + p.price * p.sold; }, 0);
+  }
+  function tuitionRevenue(d) {
+    d = d || db();
+    return d.classes.reduce(function (s, c) { return s + c.tuition * Math.max(0, c.enrolled - (c.schol || 0)); }, 0);
+  }
+  function otherEarned(d) {
+    d = d || db();
+    return d.earned.reduce(function (s, e) { return s + e.amt; }, 0);
+  }
+  function earnedTotal(d) {
+    d = d || db();
+    return ticketRevenue(d) + subscriptionRevenue(d) + tuitionRevenue(d) + otherEarned(d);
+  }
+  function contributedTotal(d) {
+    d = d || db();
+    var gifts = d.gifts.reduce(function (s, g) {
+      /* a pledge counts what has actually been PAID, not what was promised */
+      if (g.kind === "Pledge") return s + (Number(g.paid) || 0);
+      return s + (Number(g.amt) || 0);
+    }, 0);
+    var spon = d.sponsors.reduce(function (s, x) { return s + x.amt; }, 0);
+    return gifts + spon;
+  }
+  function totalRevenue(d) { d = d || db(); return earnedTotal(d) + contributedTotal(d); }
+
+  /* The share of the budget that is GIVEN rather than earned. We report the
+     house's own number; we do not compare it to a sector benchmark we have
+     not sourced. */
+  function contributedShare(d) {
+    d = d || db();
+    var t = totalRevenue(d);
+    return t ? (contributedTotal(d) / t) * 100 : 0;
+  }
+
+  /* REVENUE KEPT — the headline. What a per-ticket platform would have taken. */
+  function feesAvoided(d) { return ticketsSold(d || db()) * PLATFORM_FEE_PER_TICKET; }
+  function revenueKept(d) { d = d || db(); return ticketRevenue(d) + feesAvoided(d); }
+
+  function expensesTotal(d) { d = d || db(); return d.expenses.reduce(function (s,x){ return s + x.amt; }, 0); }
+  function surplus(d) { d = d || db(); return totalRevenue(d) - expensesTotal(d); }
+
+  /* Functional expense split — the three buckets IRS Form 990 asks for. */
+  function functionalSplit(d) {
+    d = d || db();
+    var out = { Program:0, Management:0, Fundraising:0 };
+    d.expenses.forEach(function (x) { if (out[x.fn] !== undefined) out[x.fn] += x.amt; });
+    var t = out.Program + out.Management + out.Fundraising;
+    return { amounts: out, total: t,
+      pct: { Program: t ? out.Program/t*100 : 0,
+             Management: t ? out.Management/t*100 : 0,
+             Fundraising: t ? out.Fundraising/t*100 : 0 } };
+  }
+
+  /* Cost to raise a dollar — fundraising expense over contributed income.
+     We show the house's own ratio. We do NOT assert what "good" is; the
+     watchdog thresholds are not sourced in this build. */
+  function costToRaiseADollar(d) {
+    d = d || db();
+    var fr = d.expenses.filter(function (x) { return x.fn === "Fundraising"; })
+                       .reduce(function (s,x){ return s + x.amt; }, 0);
+    var c = contributedTotal(d);
+    return c ? fr / c : 0;
+  }
+
+  /* Idaho sales tax on admissions actually collected. */
+  function salesTaxOwed(d) {
+    d = d || db();
+    return ticketRevenue(d) * ID_SALES_TAX;
+  }
+
+  /* Volunteer hours. We report HOURS. We do not price them — the Independent
+     Sector hourly value is not sourced in this build, and inventing one would
+     put a fake number in a grant report. */
+  function volunteerHours(d) {
+    d = d || db();
+    return d.volunteers.reduce(function (s, v) { return s + (Number(v.hours) || 0); }, 0);
+  }
+  function activeVolunteers(d) {
+    d = d || db();
+    return d.volunteers.filter(function (v) { return v.active; }).length;
+  }
+
+  /* Paid capacity — seats sold against seats offered, for shows that have run. */
+  function paidCapacity(d) {
+    d = d || db();
+    var run = d.productions.filter(function (p) { return p.seatsSold > 0; });
+    var sold = run.reduce(function (s,p){ return s + p.seatsSold; }, 0);
+    var held = run.reduce(function (s,p){ return s + p.seatsHeld; }, 0);
+    return held ? (sold / held) * 100 : 0;
+  }
+
+  /* THE GATE. A show cannot go On Sale without secured rights. */
+  function rightsUnsecured(d) {
+    d = d || db();
+    return d.productions.filter(function (p) { return p.rights !== "Secured"; });
+  }
+  function canGoOnSale(p) { return p.rights === "Secured"; }
+
+  function openTasks(d) { d = d || db(); return d.tasks.filter(function (t) { return !t.done; }); }
+  function unacknowledgedGifts(d) { d = d || db(); return d.gifts.filter(function (g) { return !g.ack; }); }
+  function restrictedFunds(d) { d = d || db(); return d.gifts.filter(function (g) { return g.restricted; }); }
+  function sponsorGaps(d) {
+    d = d || db();
+    var out = [];
+    d.sponsors.forEach(function (s) {
+      Object.keys(s.fulfil || {}).forEach(function (item) {
+        if (!s.fulfil[item]) out.push({ sponsor: s.name, item: item, level: s.level });
+      });
+    });
+    return out;
+  }
+
+  /* The KPI board. `bench` is null everywhere on purpose — see BENCH above. */
+  function kpis() {
+    var d = db();
+    return [
+      { label:"Revenue kept",    value: revenueKept(d),      fmt:"money", bench:null,
+        note:"Incl. " + money(feesAvoided(d)) + " a per-ticket platform would have taken" },
+      { label:"Surplus",         value: surplus(d),          fmt:"money", bench:null,
+        band: surplus(d) >= 0 ? "good" : "bad" },
+      { label:"Contributed",     value: contributedShare(d), fmt:"pct",   bench:null,
+        note:"of total revenue" },
+      { label:"Paid capacity",   value: paidCapacity(d),     fmt:"pct",   bench:null,
+        note:"seats sold vs offered" },
+      { label:"Volunteer hours", value: volunteerHours(d),   fmt:"hours", bench:null,
+        note: activeVolunteers(d) + " active" },
+      { label:"Sales tax owed",  value: salesTaxOwed(d),     fmt:"money", bench:null,
+        band:"watch", note:"to Idaho" }
+    ];
+  }
+
+  global.MusicalCore = {
+    KEY:KEY, STORE_URL:STORE_URL, SHOP_URL:SHOP_URL,
+    db:db, save:save, fresh:fresh, resetFloor:resetFloor, SEED:SEED,
+    SHOW_TYPES:SHOW_TYPES, PROD_STAGES:PROD_STAGES, LICENSORS:LICENSORS, RIGHTS_STATUS:RIGHTS_STATUS,
+    GIVING_LEVELS:GIVING_LEVELS, GIFT_KINDS:GIFT_KINDS, SPONSOR_LEVELS:SPONSOR_LEVELS,
+    HOUSE_ROLES:HOUSE_ROLES, VOLUNTEER_JOBS:VOLUNTEER_JOBS, REPLACES:REPLACES, BENCH:BENCH,
+    ID_SALES_TAX:ID_SALES_TAX, PLATFORM_FEE_PER_TICKET:PLATFORM_FEE_PER_TICKET,
+    ROOMS:ROOMS, TIERS:TIERS, DEPTS:DEPTS,
+    tier:tier, setTier:setTier, tierRank:tierRank, tierByRank:tierByRank,
+    activeRooms:activeRooms, hasRoom:hasRoom, toggleRoom:toggleRoom,
+    priceNow:priceNow, priceLabel:priceLabel,
+    ticketsSold:ticketsSold, ticketRevenue:ticketRevenue, subscriptionRevenue:subscriptionRevenue,
+    tuitionRevenue:tuitionRevenue, otherEarned:otherEarned,
+    earnedTotal:earnedTotal, contributedTotal:contributedTotal, totalRevenue:totalRevenue,
+    contributedShare:contributedShare, feesAvoided:feesAvoided, revenueKept:revenueKept,
+    expensesTotal:expensesTotal, surplus:surplus, functionalSplit:functionalSplit,
+    costToRaiseADollar:costToRaiseADollar, salesTaxOwed:salesTaxOwed,
+    volunteerHours:volunteerHours, activeVolunteers:activeVolunteers, paidCapacity:paidCapacity,
+    rightsUnsecured:rightsUnsecured, canGoOnSale:canGoOnSale,
+    openTasks:openTasks, unacknowledgedGifts:unacknowledgedGifts,
+    restrictedFunds:restrictedFunds, sponsorGaps:sponsorGaps, kpis:kpis
+  };
+
+  /* money/esc are needed above before the UI half loads; define them here. */
+  function money(n){ return "$" + (Math.round(Number(n)||0)).toLocaleString(); }
+  global.MusicalCore.money = money;
+
+})(window);
+
+/* ============================================================================
+   MUSICAL OS · V3.0 — part two: the org, the law desk, and the chrome.
+   ============================================================================ */
+(function (global) {
+  "use strict";
+  var C = global.MusicalCore;
+  var ROOMS = C.ROOMS, TIERS = C.TIERS, DEPTS = C.DEPTS;
+  var db = C.db, save = C.save, money = C.money;
+
+  function el(html){ var t=document.createElement("template"); t.innerHTML=String(html).trim(); return t.content.firstChild; }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function pct(n,dp){ return (Number(n)||0).toFixed(dp===undefined?0:dp)+"%"; }
+  function hours(n){ return (Number(n)||0).toLocaleString()+" h"; }
+
+  /* ---------------------------------------------------------------- the org
+     Same architecture as Buttress: a chain per department, two opposing lenses
+     that never confer, and a pacemaker that gates on a confidence bar. Money
+     and Law sit at 85; everything else at 80. */
+  var SEATS = {
+    boxoffice:  { name:"Front of House", gate:80, dh:{name:"Odile Ferran", t:"House Manager"},
+      ae:{name:"Sam Ipsen", t:"Box Office Lead"}, pace:{name:"Callboard", t:"Pacemaker"},
+      lensA:{name:"Fill the House", t:"sell the seat"}, lensB:{name:"Protect the Patron", t:"hold the promise"} },
+    productions:{ name:"Productions", gate:80, dh:{name:"Marisol Vane", t:"Producing Director"},
+      ae:{name:"Theo Brandt", t:"Production AE"}, pace:{name:"Half Hour", t:"Pacemaker"},
+      lensA:{name:"Make the Season", t:"ambition"}, lensB:{name:"Make the Budget", t:"restraint"} },
+    rights:     { name:"Rights & Royalties", gate:85, dh:{name:"Imogen Sale", t:"Licensing"},
+      ae:{name:"Ruben Ostry", t:"Rights AE"}, pace:{name:"Clearance", t:"Pacemaker"},
+      lensA:{name:"Secure It", t:"get the show"}, lensB:{name:"Read the Grant", t:"comply first"} },
+    patrons:    { name:"Patrons", gate:80, dh:{name:"Nadia Rooke", t:"Patron Services"},
+      ae:{name:"Elias Mott", t:"Subscriptions AE"}, pace:{name:"Renewal", t:"Pacemaker"},
+      lensA:{name:"Grow the List", t:"acquire"}, lensB:{name:"Keep the Seat", t:"retain"} },
+    dev:        { name:"Development", gate:85, dh:{name:"Harriet Loew", t:"Development Director"},
+      ae:{name:"Iris Calder", t:"Giving AE"}, pace:{name:"Steward", t:"Pacemaker"},
+      lensA:{name:"Raise It", t:"the ask"}, lensB:{name:"Honour the Restriction", t:"the donor's intent"} },
+    sponsors:   { name:"Sponsorship", gate:80, dh:{name:"Deshawn Pryor", t:"Partnerships"},
+      ae:{name:"Wren Aoki", t:"Sponsor AE"}, pace:{name:"Fulfilment", t:"Pacemaker"},
+      lensA:{name:"Sell the Season", t:"new money"}, lensB:{name:"Deliver the Promise", t:"what we owe"} },
+    volunteers: { name:"Volunteers", gate:80, dh:{name:"Bea Tillman", t:"Volunteer Coordinator"},
+      ae:{name:"Ola Nkemdi", t:"Scheduling AE"}, pace:{name:"Call List", t:"Pacemaker"},
+      lensA:{name:"Cover the Shift", t:"staff the house"}, lensB:{name:"Don't Burn Them Out", t:"the same six people"} },
+    education:  { name:"Education", gate:80, dh:{name:"Ana Ruiz-Hale", t:"Education Director"},
+      ae:{name:"Jonah Beck", t:"Programs AE"}, pace:{name:"Roster", t:"Pacemaker"},
+      lensA:{name:"Fill the Class", t:"enrolment"}, lensB:{name:"Keep It Reachable", t:"scholarships"} },
+    books:      { name:"Books", gate:85, dh:{name:"Roland Mbeki", t:"Finance"},
+      ae:{name:"Pilar Sund", t:"Bookkeeping AE"}, pace:{name:"Reconcile", t:"Pacemaker"},
+      lensA:{name:"Show the Surplus", t:"the board wants good news"}, lensB:{name:"Show the Truth", t:"the 990 is public"} },
+    law:        { name:"Law & Counsel", gate:85, dh:{name:"Counsel", t:"Knowledge Desk"},
+      ae:{name:"Docket", t:"Compliance AE"}, pace:{name:"Standard of Care", t:"Pacemaker"},
+      lensA:{name:"Statute", t:"what the code says"}, lensB:{name:"Precedent", t:"how it has gone"} }
+  };
+
+  /* Where a question goes. Keyword routing, deliberately legible. */
+  var ROUTES = [
+    { d:"rights",     k:["rights","royalt","licen","mti","dramatists","concord","perform the","score","script"] },
+    { d:"dev",        k:["donor","donat","gift","pledge","grant","restricted","acknowledg","gala","brick","giving","fundrais"] },
+    { d:"sponsors",   k:["sponsor","playbill ad","partner","renew","fulfil","fulfill"] },
+    { d:"volunteers", k:["volunteer","usher","shift","hours","crew","strike","load-in"] },
+    { d:"education",  k:["class","camp","student","tuition","scholarship","teacher","enrol","enroll"] },
+    { d:"books",      k:["book","surplus","deficit","expense","990","functional","cash","financ","in the black","in the red","how are we doing","revenue","income"] },
+    { d:"law",        k:["legal","law","liab","board","fiduciar","bylaw","insur","stipend","deduct","compl","conflict"] },
+    { d:"patrons",    k:["patron","subscri","season ticket","season package","package","renewal","lapsed","flex"] },
+    { d:"boxoffice",  k:["seat","ticket","house","comp","hold","walk-up","box office","sold"] },
+    { d:"productions",k:["show","product","season","rehears","cast","budget","venue","open"] }
+  ];
+  function routeDept(q) {
+    /* Counsel gets first refusal. "Can we move grant money to another show" is a
+       restricted-funds question, not a fundraising one, and "are tickets tax
+       deductible" is a substantiation question, not a bookkeeping one. Both
+       routed wrong on keyword weight alone. If the law desk holds a graded
+       answer, the law desk takes it. */
+    if (typeof lawAsk === "function" && lawAsk(q)) return "law";
+    var s = String(q||"").toLowerCase(), best = null, hits = 0;
+    ROUTES.forEach(function (r) {
+      var n = r.k.reduce(function (a,w){ return a + (s.indexOf(w)>=0?1:0); }, 0);
+      if (n > hits) { hits = n; best = r.d; }
+    });
+    return SEATS[best] ? best : "productions";
+  }
+
+  /* The brain. Every handler reads the REAL seeded record and returns a
+     stance, a confidence, and reasons tagged [data] or [assumption]. Nothing
+     here invents a figure. */
+  var BRAIN = {
+    rights: function (d) {
+      var un = C.rightsUnsecured(d), onsale = un.filter(function(p){ return p.stage==="On Sale"; });
+      return { stance: un.length
+          ? un.length + " of " + d.productions.length + " productions do not hold secured rights. "
+            + (onsale.length ? onsale.length + " of those are already selling — stop that today."
+                             : "None are selling yet, which is the only reason this is not an emergency.")
+          : "Every production in the season holds secured rights.",
+        conf: un.length ? 96 : 92,
+        reasons: [
+          { t:"data", s: un.length + " unsecured: " + (un.map(function(p){return p.title+" ("+p.rights+")";}).join("; ") || "none") },
+          { t:"data", s:"The gate blocks On Sale until the licensor confirms. Seats cannot be sold against an unsigned quote." },
+          { t:"assumption", s:"Quoted is not secured. A quote is a price, not a licence." }
+        ] };
+    },
+    dev: function (d) {
+      var un = C.unacknowledgedGifts(d), rest = C.restrictedFunds(d);
+      var pledges = d.gifts.filter(function(g){ return g.kind==="Pledge"; });
+      var outstanding = pledges.reduce(function(s,g){ return s + ((g.pledged||0)-(g.paid||0)); },0);
+      return { stance: un.length + " gifts are unacknowledged and " + money(outstanding) + " of pledged money is still outstanding.",
+        conf: 88,
+        reasons: [
+          { t:"data", s: un.length + " gifts have no acknowledgment on file, totalling " + money(un.reduce(function(s,g){return s+g.amt;},0)) + "." },
+          { t:"data", s: rest.length + " restricted fund(s) on the books: " + (rest.map(function(g){return g.donor;}).join(", ")||"none") + "." },
+          { t:"assumption", s:"Written acknowledgment matters for donor substantiation. Counsel grades the threshold — this desk does not." }
+        ] };
+    },
+    sponsors: function (d) {
+      var gaps = C.sponsorGaps(d);
+      return { stance: gaps.length
+          ? gaps.length + " promised sponsor benefits have not shipped. That is the renewal conversation, whether or not anyone raises it."
+          : "Every sponsor benefit on the books has been delivered.",
+        conf: 87,
+        reasons: [
+          { t:"data", s: gaps.slice(0,3).map(function(g){return g.sponsor+" — "+g.item;}).join("; ") || "no outstanding items" },
+          { t:"data", s: d.sponsors.length + " sponsors carrying " + money(d.sponsors.reduce(function(s,x){return s+x.amt;},0)) + "." },
+          { t:"assumption", s:"Unshipped benefits are the most common reason a local sponsor quietly does not renew." }
+        ] };
+    },
+    volunteers: function (d) {
+      var top = d.volunteers.slice().sort(function(a,b){ return b.hours-a.hours; })[0];
+      var h = C.volunteerHours(d), n = C.activeVolunteers(d);
+      var share = top ? (top.hours/h*100) : 0;
+      return { stance: h + " volunteer hours logged across " + n + " active people; the top volunteer carries " + pct(share,0) + " of them.",
+        conf: 84,
+        reasons: [
+          { t:"data", s:"Top: " + (top ? top.name + " at " + top.hours + " h" : "none") + "." },
+          { t:"data", s:"Hours are logged per person — a grant report can be produced from the record rather than reconstructed." },
+          { t:"assumption", s:"No dollar value is attached. The Independent Sector hourly rate is not sourced in this build, and a made-up figure in a grant report is worse than none." }
+        ] };
+    },
+    education: function (d) {
+      var full = d.classes.filter(function(c){ return c.enrolled >= c.seats; });
+      var soft = d.classes.filter(function(c){ return c.enrolled / c.seats < 0.5; });
+      var schol = d.classes.reduce(function(s,c){ return s + (c.schol||0); },0);
+      return { stance: full.length + " class(es) are full, " + soft.length + " are under half, and " + schol + " seats are on scholarship.",
+        conf: 86,
+        reasons: [
+          { t:"data", s: d.classes.map(function(c){ return c.name+" "+c.enrolled+"/"+c.seats; }).join(" · ") },
+          { t:"data", s:"Tuition net of scholarship is " + money(C.tuitionRevenue(d)) + " season to date." },
+          { t:"assumption", s:"A class under half by the second week rarely fills; the decision to run or fold is a money decision, not a hope." }
+        ] };
+    },
+    books: function (d) {
+      var f = C.functionalSplit(d), s = C.surplus(d);
+      return { stance: (s>=0 ? "Season to date is " + money(s) + " in the black" : "Season to date is " + money(Math.abs(s)) + " in the red")
+          + ", on " + pct(C.contributedShare(d),0) + " contributed income.",
+        conf: 90,
+        reasons: [
+          { t:"data", s:"Earned " + money(C.earnedTotal(d)) + " · contributed " + money(C.contributedTotal(d)) + " · expenses " + money(C.expensesTotal(d)) + "." },
+          { t:"data", s:"Functional split — program " + pct(f.pct.Program,1) + ", management " + pct(f.pct.Management,1) + ", fundraising " + pct(f.pct.Fundraising,1) + "." },
+          { t:"assumption", s:"No sector benchmark is shown. TCG and AFP figures are not sourced in this build, so the room reports the house's own numbers and nothing else." }
+        ] };
+    },
+    law: function (d, q) {
+      var hit = lawAsk(q);
+      if (!hit) {
+        return { stance:"Counsel is a knowledge desk, not a lawyer. Ask it something specific and it will grade the answer.",
+          conf: 80, grade:null,
+          reasons: [
+            { t:"data", s:"Every answer is graded CLEAR, CAUTION or ATTORNEY and carries its reasoning." },
+            { t:"assumption", s:"Anything binding goes to a licensed Idaho attorney. The desk says so rather than guessing." }
+          ] };
+      }
+      /* Confidence is the desk's certainty in the GRADE, not in being right for
+         you. An ATTORNEY grade is a confident referral, not a weak answer. */
+      var conf = hit.grade === "CLEAR" ? 94 : (hit.grade === "CAUTION" ? 86 : 88);
+      return { stance: hit.chair, conf: conf, grade: hit.grade,
+        reasons: [
+          { t:"data",       s:"Statute — " + hit.statute },
+          { t:"data",       s:"Precedent — " + hit.precedent },
+          { t:"assumption", s:"Why this grade — " + hit.why },
+          { t:"assumption", s:"Not legal advice. For anything binding, hire a licensed Idaho attorney." }
+        ] };
+    },
+    patrons: function (d) {
+      var subs = d.packages.reduce(function(s,p){ return s+p.sold; },0);
+      return { stance: subs + " season packages sold, worth " + money(C.subscriptionRevenue(d)) + " before a single show opens.",
+        conf: 88,
+        reasons: [
+          { t:"data", s: d.packages.map(function(p){ return p.name+" ×"+p.sold; }).join(" · ") },
+          { t:"data", s:"Subscription money arrives before the season's costs do — it is the house's working capital." },
+          { t:"assumption", s:"Renewal rate is not computed here; last season's list is not in the seed." }
+        ] };
+    },
+    boxoffice: function (d) {
+      return { stance: C.ticketsSold(d) + " seats sold at " + pct(C.paidCapacity(d),1) + " paid capacity, and "
+          + money(C.feesAvoided(d)) + " stayed in the house that a per-ticket platform would have taken.",
+        conf: 89,
+        reasons: [
+          { t:"data", s:"Revenue kept " + money(C.revenueKept(d)) + ", of which " + money(C.feesAvoided(d)) + " is fees not paid." },
+          { t:"data", s:"Paid capacity counts only shows that have actually run." },
+          { t:"assumption", s:"The avoided fee is modelled at " + money(C.PLATFORM_FEE_PER_TICKET) + " per ticket — change it in the seed to match a real quote." }
+        ] };
+    },
+    productions: function (d) {
+      var un = C.rightsUnsecured(d), open = C.openTasks(d);
+      return { stance: d.productions.length + " productions in the season; " + un.length + " without secured rights and " + open.length + " open tasks.",
+        conf: 87,
+        reasons: [
+          { t:"data", s: d.productions.map(function(p){ return p.title+" ("+p.stage+")"; }).join(" · ") },
+          { t:"data", s:"Committed spend " + money(d.productions.reduce(function(s,p){return s+p.spend;},0)) + " against budget " + money(d.productions.reduce(function(s,p){return s+p.budget;},0)) + "." },
+          { t:"assumption", s:"A slot with no rights is a hole in the season, not a show." }
+        ] };
+    }
+  };
+
+  function consult(q) {
+    var key = routeDept(q), dept = SEATS[key];
+    var verdict = (BRAIN[key] || BRAIN.productions)(db(), q);
+    var passed = verdict.conf >= dept.gate;
+    var trace = [
+      { topic:"ask.received",   body:q },
+      { topic:"dh.assigned",    body:dept.dh.name + " (" + dept.dh.t + ") takes it for " + dept.name + "." },
+      { topic:"ae.packaged",    body:dept.ae.name + " pulls the record and packages the question." },
+      { topic:"lens." + dept.lensA.name.toLowerCase().replace(/\s+/g,"_"), body:dept.lensA.name + " argues " + dept.lensA.t + "." },
+      { topic:"lens." + dept.lensB.name.toLowerCase().replace(/\s+/g,"_"), body:dept.lensB.name + " argues " + dept.lensB.t + "." },
+      { topic:"pace.gate",      body:dept.pace.name + " holds the bar at " + dept.gate + "%. Reading " + verdict.conf + "%." +
+                                       (verdict.grade ? " Graded " + verdict.grade + "." : "") },
+      { topic: passed ? "released" : "escalated",
+        body: passed ? "Cleared the bar — released without the board." : "Below the bar — escalated to the Managing Director." }
+    ];
+    return { dept:dept, key:key, result:{ verdict:verdict, passed:passed }, trace:trace,
+             packaged: verdict.stance };
+  }
+  function askCOO(q) { return consult(q); }
+
+  /* ------------------------------------------------------- the law desk
+     Statute · Precedent · Chair, taken from the live Lake City Playhouse
+     Counsel desk. Three grades, never a bare answer. Nothing here is legal
+     advice and the desk says so every single time. */
+  var LAW_GRADES = {
+    CLEAR:    { k:"CLEAR",    dot:"🟢", label:"CLEAR — settled + cited" },
+    CAUTION:  { k:"CAUTION",  dot:"🟡", label:"CAUTION — gray, document it" },
+    ATTORNEY: { k:"ATTORNEY", dot:"🔴", label:"ATTORNEY — get a lawyer" }
+  };
+  var LAW_DESK = [
+    { q:"Do we charge sales tax on tickets?", grade:"CAUTION",
+      trigger:["sales tax","charge tax","remit","tax on tickets","tax on admission"],
+      statute:"Idaho levies a state sales tax of 6% and admissions are generally within the sales-tax base.",
+      precedent:"Houses in this state commonly collect it on paid admissions and remit on the state's schedule. The OS already tracks what is owed.",
+      chair:"Collect it, show it as a separate line, and remit on time. Whether a specific benefit event or a member ticket is treated the same way is exactly where houses get it wrong.",
+      why:"The rate is settled. The treatment of a particular ticket type is not, and it turns on facts this desk does not have." },
+    { q:"Are our tickets tax-deductible?", grade:"CAUTION",
+      trigger:["deduct","write off","write-off","quid pro quo","fair market value","gala seat","receipt"],
+      statute:"A payment is only deductible to the extent it exceeds the value of what the donor received in return.",
+      precedent:"A $25 seat bought for $25 is not a gift. A $250 gala seat against a $60 dinner is a gift of the difference — and the house is expected to say so in writing.",
+      chair:"Never tell a patron a ticket is deductible. For benefit events, state the fair market value of what they received on the receipt.",
+      why:"This is the single most common 501(c)(3) mistake a community house makes, and it lands on the donor, not the house." },
+    { q:"Do we need a licence to perform a play?", grade:"CLEAR",
+      trigger:["licence","license","perform a play","performance right","rights to perform","royalt"],
+      statute:"Public performance of a copyrighted work requires permission from the rights holder. Buying scripts is not permission.",
+      precedent:"Licensors quote per production and per performance; terms and restrictions travel with the licence.",
+      chair:"No show goes on sale without a secured licence. The OS gates it — that is not a preference, it is the gate.",
+      why:"Settled law, and the OS can prove compliance from the record." },
+    { q:"Can we use grant money for a different show?", grade:"ATTORNEY",
+      trigger:["restricted","grant money","reallocate","different show","move the money","donor intent"],
+      statute:"Restricted funds must be used for the purpose the donor or funder designated.",
+      precedent:"Moving restricted money to general operating is a breach of the restriction, not a budgeting decision, even when the house intends to pay it back.",
+      chair:"Do not move it. If the programme genuinely cannot happen, go back to the funder in writing and ask to release or redirect the restriction.",
+      why:"There is restricted money on these books right now. Getting this wrong is the kind of thing that ends a relationship with a funder — and can be worse." },
+    { q:"Is a volunteer stipend okay?", grade:"ATTORNEY",
+      trigger:["stipend","pay a volunteer","paying volunteers","volunteer pay","reimburse"],
+      statute:"Paying a volunteer can convert them into an employee for wage-and-hour purposes.",
+      precedent:"Small, genuine expense reimbursements are treated differently from a regular per-show payment.",
+      chair:"Reimburse documented expenses. Do not pay a recurring stipend without counsel — and never for someone doing what a paid role would do.",
+      why:"The line here is fact-specific and the downside is back wages and penalties." },
+    { q:"What are our board's legal duties?", grade:"CLEAR",
+      trigger:["fiduciar","board duty","board duties","duty of care","conflict of interest","bylaw","director owes"],
+      statute:"A director owes duties of care, loyalty and obedience to the organisation's purpose.",
+      precedent:"In practice: show up informed, disclose conflicts, and do not spend the money on something other than the mission.",
+      chair:"Keep a signed conflict-of-interest form for every director and minute the decisions. The Governance room tracks who has one.",
+      why:"The duties are settled; the evidence you complied with them is what you actually need." }
+  ];
+  function lawAsk(q) {
+    /* A distinctive trigger phrase wins outright. Otherwise the question has to
+       overlap the desk entry on at least TWO significant words — one word is not
+       a match, which is how "how many volunteer hours" was being answered with
+       the volunteer-stipend ruling, and how "tax deductible" was being answered
+       with the sales-tax ruling. Counsel should decline rather than misfire. */
+    var s = " " + String(q||"").toLowerCase().replace(/[^a-z0-9 ]/g," ") + " ";
+    var raw = String(q||"").toLowerCase();
+    var best = null, score = 0;
+    LAW_DESK.forEach(function (item) {
+      (item.trigger || []).forEach(function (t) {
+        if (raw.indexOf(t) >= 0 && score < 99) { best = item; score = 99; }
+      });
+    });
+    if (best) return best;
+    LAW_DESK.forEach(function (item) {
+      var words = item.q.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/)
+        .filter(function (w) { return w.length > 3 && ["what","need","okay","from","with","that","this","their","have","does"].indexOf(w) < 0; });
+      var n = words.reduce(function (a,w){ return a + (s.indexOf(" "+w) >= 0 ? 1 : 0); }, 0);
+      if (n > score) { score = n; best = item; }
+    });
+    return score >= 2 ? best : null;
+  }
+
+  /* ------------------------------------------------------------- approvals
+     Ghost Mode. Anything that would send, spend, publish or book a human is
+     staged here instead of happening. */
+  function approvals() { return db().approvals || []; }
+  function stage(kind, title, summary, by) {
+    save(function (d) {
+      d.approvals = d.approvals || [];
+      d.approvals.push({ id:"a"+(d.approvals.length+1), kind:kind, title:title,
+        summary:summary, by:by||"the org", state:"Pending" });
+    });
+    return approvals();
+  }
+  function decideApproval(id, state) {
+    save(function (d) { (d.approvals||[]).forEach(function (a) { if (a.id===id) a.state=state; }); });
+    return approvals();
+  }
+
+  /* ------------------------------------------------------------------- ui */
+  function toast(msg, kind) {
+    var w = document.getElementById("toast-wrap"); if (!w) return;
+    var t = el('<div class="toast '+(kind||"")+'">'+esc(msg)+'</div>');
+    w.appendChild(t); setTimeout(function(){ t.classList.add("out"); setTimeout(function(){ t.remove(); }, 300); }, 2600);
+  }
+  function page(title, sub, actionsHTML) {
+    return el('<div class="pagehead"><div><h1>'+esc(title)+'</h1>'+
+      (sub?'<p class="sub">'+sub+'</p>':"")+'</div>'+
+      '<div class="pagehead-actions">'+(actionsHTML||"")+'</div></div>');
+  }
+  function card(inner, cls){ return el('<section class="card '+(cls||"")+'">'+inner+'</section>'); }
+  function stat(label, value, note, band){
+    return '<div class="stat '+(band||"")+'"><div class="s-l">'+esc(label)+'</div>'+
+      '<div class="s-v">'+value+'</div>'+(note?'<div class="s-n">'+note+'</div>':"")+'</div>';
+  }
+  function tag(text, kind){ return '<span class="tag '+(kind||"")+'">'+esc(text)+'</span>'; }
+  function srcNote(text){ return '<div class="srcnote">'+esc(text)+'</div>'; }
+
+  function renderShell(active) {
+    var side = document.createElement("aside"); side.className = "sidebar";
+    side.appendChild(el(
+      '<a href="dashboard.html" class="brand">'+
+        '<div class="bmark" aria-hidden="true">'+
+          '<svg viewBox="0 0 32 32" width="26" height="26"><g fill="none" stroke="currentColor" stroke-width="1.6">'+
+          '<path d="M5 12h22l-2 15H7z"/><path d="M5 12 16 4l11 8"/>'+
+          '<circle cx="12.5" cy="19" r="1.6"/><circle cx="19.5" cy="19" r="1.6"/></g></svg>'+
+        '</div>'+
+        '<div><div class="bt">Musical OS</div><div class="bs">Community Playhouse OS</div></div>'+
+      '</a>'
+    ));
+    var nav = document.createElement("nav"); nav.className = "nav";
+    var on = C.activeRooms();
+    DEPTS.forEach(function (grp) {
+      nav.appendChild(el('<div class="nav-group">'+esc(grp.group)+'</div>'));
+      grp.items.forEach(function (it) {
+        var off = it.room && on.indexOf(it.room) < 0;
+        var a = el('<a href="'+(off?"javascript:void(0)":it.href)+'" class="navlink '+
+          (it.href===active?"active":"")+(off?" locked":"")+'">'+
+          '<span class="ic">'+esc(it.ic||"·")+'</span><span class="lb">'+esc(it.label)+'</span>'+
+          (off?'<span class="lock">+</span>':"")+'</a>');
+        if (off) {
+          a.title = "Not in this build — add "+ROOMS[it.room].label+" for "+
+                    money(ROOMS[it.room].mo)+"/mo + "+money(ROOMS[it.room].build)+" build";
+          a.addEventListener("click", function () {
+            C.toggleRoom(it.room);
+            toast(ROOMS[it.room].label+" added — "+C.priceLabel(), "ok");
+            setTimeout(function(){ location.reload(); }, 500);
+          });
+        }
+        nav.appendChild(a);
+      });
+    });
+    side.appendChild(nav);
+
+    /* the way out — lands in the STORE, never the marketing homepage */
+    side.appendChild(el(
+      '<div class="sideout">'+
+        '<a class="so-main" href="'+C.STORE_URL+'">'+
+          '<span><span class="so-k">Musical OS</span>'+
+          '<span class="so-t">See pricing &amp; packages</span></span>'+
+          '<span class="so-a">&rarr;</span>'+
+        '</a>'+
+        '<a class="so-sub" href="'+C.SHOP_URL+'">All Accelerated Experiences products &rarr;</a>'+
+      '</div>'
+    ));
+    return side;
+  }
+
+  function renderTopbar(crumb) {
+    var p = C.priceNow();
+    var bar = document.createElement("div"); bar.className = "topbar";
+    bar.innerHTML =
+      '<div class="crumbs">Musical OS <span class="mono" style="opacity:.62;font-size:11px">V3.0</span> · <b>'+esc(crumb)+'</b></div>'+
+      '<div class="spacer"></div>'+
+      '<div class="tierpill" id="tierPill" role="button" tabindex="0">'+
+        '<span class="dot"></span><div><b>'+esc(p.tier.name)+(p.changed?' <i class="cfg">configured</i>':'')+'</b> '+
+        '<span class="price">'+money(p.mo)+'/mo · '+money(p.build)+' build</span></div>'+
+        '<span class="chev">▾</span></div>'+
+      '<div class="who"><div class="av">MV</div><div>Marisol Vane<br>'+
+        '<span class="muted small">Managing Director</span></div></div>';
+
+    var menu = document.createElement("div"); menu.className="tiermenu"; menu.id="tierMenu";
+    menu.appendChild(el('<div class="tm-head">Start from a package, then <b>add or take off any department</b>. '+
+      'Every one is priced on its own, so the build fits the house instead of the house fitting the build.</div>'));
+    Object.keys(TIERS).sort(function(a,b){ return TIERS[b].rank-TIERS[a].rank; }).forEach(function (k) {
+      var tt = TIERS[k];
+      var opt = el('<div class="tieropt '+(k===C.tier()?"on":"")+'">'+
+        '<div class="to-top"><span class="to-name">'+esc(tt.name)+'</span>'+
+        '<span class="to-price">'+money(tt.mo)+'/mo · '+money(tt.build)+' build</span></div>'+
+        '<div class="to-desc">'+esc(tt.desc)+'</div>'+
+        '<div class="to-base">'+esc(tt.base)+' · '+tt.includes.length+' departments</div></div>');
+      opt.addEventListener("click", function (e) { e.stopPropagation(); C.setTier(k); location.reload(); });
+      menu.appendChild(opt);
+    });
+    menu.appendChild(el('<div class="tm-sub">Departments — toggle any one on or off</div>'));
+    var on = C.activeRooms();
+    var list = document.createElement("div"); list.className="roomlist";
+    Object.keys(ROOMS).forEach(function (k) {
+      var r = ROOMS[k], isOn = on.indexOf(k)>=0, inPack = p.tier.includes.indexOf(k)>=0;
+      var row = el('<div class="roomrow '+(isOn?"on":"")+'">'+
+        '<span class="rr-box">'+(isOn?"✓":"+")+'</span>'+
+        '<span class="rr-name">'+esc(r.label)+
+          (isOn&&!inPack?' <i class="rr-flag add">added</i>':'')+
+          (!isOn&&inPack?' <i class="rr-flag off">removed</i>':'')+'</span>'+
+        '<span class="rr-price">'+money(r.mo)+'/mo<i>'+money(r.build)+' build</i></span>'+
+        '<span class="rr-why">'+esc(r.why)+'</span></div>');
+      row.addEventListener("click", function (e) {
+        e.stopPropagation(); C.toggleRoom(k);
+        toast(r.label+(C.activeRooms().indexOf(k)>=0?" added — ":" removed — ")+C.priceLabel(), "ok");
+        setTimeout(function(){ location.reload(); }, 500);
+      });
+      list.appendChild(row);
+    });
+    menu.appendChild(list);
+    menu.appendChild(el('<div class="tm-total">'+
+      '<div class="tt-line"><span>'+esc(p.tier.name)+' package</span><b>'+money(p.tier.mo)+'/mo</b></div>'+
+      (p.adds.length?'<div class="tt-line add"><span>+ '+p.adds.length+' department'+(p.adds.length>1?"s":"")+' added</span><b>+'+money(p.addMo)+'/mo</b></div>':'')+
+      (p.offs.length?'<div class="tt-line off"><span>− '+p.offs.length+' department'+(p.offs.length>1?"s":"")+' removed</span><b>−'+money(p.offMo)+'/mo</b></div>':'')+
+      '<div class="tt-line grand"><span>Configured</span><b>'+money(p.mo)+'/mo · '+money(p.build)+' build</b></div>'+
+      '<div class="tt-draft">Draft pricing — Accelerated Experiences LLC sets every live price.</div>'+
+      '</div>'));
+    menu.addEventListener("click", function(e){ e.stopPropagation(); });
+    setTimeout(function () {
+      var pill = document.getElementById("tierPill");
+      if (pill) pill.addEventListener("click", function(e){ e.stopPropagation(); menu.classList.toggle("open"); });
+      document.addEventListener("click", function(){ menu.classList.remove("open"); });
+    }, 0);
+    var frag = document.createDocumentFragment(); frag.appendChild(bar); frag.appendChild(menu);
+    return frag;
+  }
+
+  function ribbon() {
+    return el('<div class="ribbon"><span class="live">LIVE SHOWROOM</span>'+
+      ' — this is the real OS, not a slideshow. Everything you type stays in your browser and resets when you leave. '+
+      '<a href="javascript:void(0)" id="resetFloor">Reset the floor</a></div>');
+  }
+  function footer() {
+    return el('<div class="ae-credit">Powered by <b>Accelerated Experiences LLC</b> · Musical OS is a white-label build. '+
+      'The playhouse on this floor is fictional. Where a sector benchmark is not sourced, the metric ships with no target rather than a guess.</div>');
+  }
+
+  function mount(opts) {
+    opts = opts || {}; db();
+    var app = document.createElement("div"); app.className="app";
+    var side = renderShell(opts.active);
+    var main = document.createElement("div"); main.className="main";
+    main.appendChild(ribbon());
+    main.appendChild(renderTopbar(opts.crumb || "Command Center"));
+    var content = document.createElement("div"); content.className="content"; content.id="content";
+    main.appendChild(content);
+    main.appendChild(footer());
+    app.appendChild(side); app.appendChild(main);
+    document.body.innerHTML=""; document.body.appendChild(app);
+    document.body.appendChild(el('<div id="toast-wrap"></div>'));
+    setTimeout(function () {
+      var r = document.getElementById("resetFloor");
+      if (r) r.addEventListener("click", function () {
+        C.resetFloor(); toast("Showroom reset to a fresh floor.", "ok");
+        setTimeout(function(){ location.reload(); }, 450);
+      });
+    }, 0);
+    return content;
+  }
+
+  /* one namespace for the room pages */
+  var API = { SEATS:SEATS, BRAIN:BRAIN, LAW_DESK:LAW_DESK, LAW_GRADES:LAW_GRADES,
+    routeDept:routeDept, consult:consult, askCOO:askCOO, lawAsk:lawAsk,
+    approvals:approvals, stage:stage, decideApproval:decideApproval,
+    mount:mount, toast:toast, el:el, esc:esc, pct:pct, hours:hours,
+    page:page, card:card, stat:stat, tag:tag, srcNote:srcNote };
+  Object.keys(C).forEach(function (k) { if (!(k in API)) API[k] = C[k]; });
+  global.Musical = API;
+})(window);

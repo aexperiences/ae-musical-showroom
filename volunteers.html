@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volunteers · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"volunteers.html", crumb:"Volunteers" });
+  c.appendChild(M.page("Volunteers",
+    "The house runs on unpaid hands. This room logs the hours — which is what a grant report asks for and what a spreadsheet always loses."));
+
+  var h = M.volunteerHours(d), n = M.activeVolunteers(d);
+  var sorted = d.volunteers.slice().sort(function (a,b) { return b.hours - a.hours; });
+  var top = sorted[0];
+  c.appendChild(M.card(
+    '<h2>Hours on the board</h2>' +
+    '<div class="statrow">' +
+      M.stat("Hours logged", M.hours(h), "this season") +
+      M.stat("Active volunteers", n, "of " + d.volunteers.length + " on file") +
+      M.stat("Top volunteer", top ? M.hours(top.hours) : "—", top ? M.esc(top.name) + " · " + M.pct(top.hours / h * 100, 0) + " of all hours" : "", "watch") +
+      M.stat("Median hours", M.hours(sorted[Math.floor(sorted.length / 2)].hours), "the typical volunteer") +
+    '</div>' +
+    '<div class="fence" style="margin-top:14px">No dollar value is attached to these hours. The Independent Sector hourly rate is <b>not sourced in this build</b>, and a made-up figure inside a grant report is worse than no figure at all. The hours are real; the valuation waits for a citation.</div>'));
+
+  c.appendChild(M.card(
+    '<h2>Who is carrying the house</h2>' +
+    '<div class="card-sub">When one person carries a third of the hours, that is not a strength — it is a single point of failure with a life outside the theatre.</div>' +
+    '<table><thead><tr><th>Volunteer</th><th>Jobs</th><th class="num">Hours</th><th class="num">Since</th><th></th></tr></thead><tbody>' +
+    sorted.map(function (v) {
+      return '<tr><td class="t-main">' + M.esc(v.name) + '</td>' +
+        '<td>' + v.jobs.map(function (j) { return M.tag(j, "ghost"); }).join(" ") + '</td>' +
+        '<td class="num"><b>' + v.hours + '</b></td>' +
+        '<td class="num">' + v.since + '</td>' +
+        '<td>' + (v.active ? M.tag("Active", "good") : M.tag("Lapsed", "")) + '</td></tr>';
+    }).join("") + '</tbody></table>'));
+})();
+</script>
+</body>
+</html>

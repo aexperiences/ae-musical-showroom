@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Books · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"books.html", crumb:"Books" });
+  c.appendChild(M.page("Books",
+    "Earned against given, and the three-way functional split that IRS Form 990 asks for. A 990 is a public document — the books should be written as if someone will read them, because they will."));
+
+  var s = M.surplus(d), f = M.functionalSplit(d);
+  c.appendChild(M.card(
+    '<h2>Season to date</h2>' +
+    '<div class="statrow">' +
+      M.stat("Total revenue", M.money(M.totalRevenue(d)), "earned + contributed") +
+      M.stat("Expenses", M.money(M.expensesTotal(d)), "season to date") +
+      M.stat(s >= 0 ? "Surplus" : "Deficit", M.money(Math.abs(s)), s >= 0 ? "in the black" : "in the red", s >= 0 ? "good" : "bad") +
+      M.stat("Contributed share", M.pct(M.contributedShare(d), 1), "of total revenue") +
+      M.stat("Cost to raise $1", "$" + M.costToRaiseADollar(d).toFixed(2), "fundraising ÷ contributed") +
+    '</div>' +
+    '<div class="fence" style="margin-top:14px">Expenses here are <b>season to date</b>, not a full-season budget. One show has closed and one is in rehearsal — booking twelve months of cost against one show\'s income would show a failing house instead of a real one.</div>'));
+
+  var grid = document.createElement("div"); grid.className = "grid g2";
+  grid.appendChild(M.card(
+    '<h2>Functional expense split</h2>' +
+    '<div class="card-sub">The three buckets a 990 requires. Every dollar the house spends lands in exactly one of them.</div>' +
+    '<div class="statrow">' +
+      M.stat("Program", M.pct(f.pct.Program, 1), M.money(f.amounts.Program)) +
+      M.stat("Management", M.pct(f.pct.Management, 1), M.money(f.amounts.Management)) +
+      M.stat("Fundraising", M.pct(f.pct.Fundraising, 1), M.money(f.amounts.Fundraising)) +
+    '</div>' +
+    '<table><thead><tr><th>Line</th><th>Function</th><th class="num">Amount</th></tr></thead><tbody>' +
+    d.expenses.map(function (x) {
+      return '<tr><td>' + M.esc(x.cat) + '</td><td>' + M.tag(x.fn, x.fn === "Program" ? "good" : "ghost") + '</td>' +
+        '<td class="num">' + M.money(x.amt) + '</td></tr>';
+    }).join("") + '</tbody></table>' +
+    M.srcNote("No watchdog threshold is shown against the program ratio. BBB Wise Giving Alliance and Charity Navigator standards are not sourced in this build.")));
+
+  grid.appendChild(M.card(
+    '<h2>Where the money came from</h2>' +
+    '<table><tbody>' +
+      '<tr><td>Single tickets</td><td class="num">' + M.money(M.ticketRevenue(d)) + '</td></tr>' +
+      '<tr><td>Season packages</td><td class="num">' + M.money(M.subscriptionRevenue(d)) + '</td></tr>' +
+      '<tr><td>Tuition, net of scholarship</td><td class="num">' + M.money(M.tuitionRevenue(d)) + '</td></tr>' +
+      '<tr><td>Concessions, rental, merchandise</td><td class="num">' + M.money(M.otherEarned(d)) + '</td></tr>' +
+      '<tr class="tot"><td><b>Earned</b></td><td class="num"><b>' + M.money(M.earnedTotal(d)) + '</b></td></tr>' +
+      '<tr><td>Sponsorship</td><td class="num">' + M.money(d.sponsors.reduce(function (a,x) { return a + x.amt; }, 0)) + '</td></tr>' +
+      '<tr><td>Gifts, grants, gala &amp; bricks</td><td class="num">' + M.money(M.contributedTotal(d) - d.sponsors.reduce(function (a,x) { return a + x.amt; }, 0)) + '</td></tr>' +
+      '<tr class="tot"><td><b>Contributed</b></td><td class="num"><b>' + M.money(M.contributedTotal(d)) + '</b></td></tr>' +
+    '</tbody></table>' +
+    '<div class="divider"></div>' +
+    '<div class="muted small">Idaho sales tax owed on admissions: <b>' + M.money(M.salesTaxOwed(d)) + '</b> — a liability, not income.</div>'));
+  c.appendChild(grid);
+})();
+</script>
+</body>
+</html>

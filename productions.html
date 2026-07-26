@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Productions · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"productions.html", crumb:"Productions" });
+  c.appendChild(M.page("Productions",
+    "The season spine. Every slot carries its own rights state, budget and run — so a hole in the season shows up in June, not in January."));
+
+  var budget = d.productions.reduce(function (s,p) { return s + p.budget; }, 0);
+  var spend  = d.productions.reduce(function (s,p) { return s + p.spend; }, 0);
+  c.appendChild(M.card(
+    '<h2>' + M.esc(d.house.season) + '</h2>' +
+    '<div class="card-sub">' + M.esc(d.house.name) + ' · ' + M.esc(d.house.city) + ' · ' + M.esc(d.house.status) + '</div>' +
+    '<div class="statrow">' +
+      M.stat("Productions", d.productions.length, "in the season") +
+      M.stat("Budgeted", M.money(budget), "across the season") +
+      M.stat("Committed", M.money(spend), M.pct(spend / budget * 100, 1) + " of budget") +
+      M.stat("Open tasks", M.openTasks(d).length, "across all shows", M.openTasks(d).length ? "watch" : "good") +
+    '</div>'));
+
+  var grid = document.createElement("div"); grid.className = "grid g2";
+  d.productions.forEach(function (p) {
+    var st = M.PROD_STAGES.filter(function (s) { return s.k === p.stage; })[0];
+    var ok = M.canGoOnSale(p);
+    var v = d.house.venues.filter(function (x) { return x.k === p.venue; })[0];
+    var tasks = d.tasks.filter(function (t) { return t.prod === p.id && !t.done; });
+    grid.appendChild(M.card(
+      '<div class="between"><div><h2 style="font-size:16px">' + M.esc(p.title) + '</h2>' +
+      '<div class="card-sub">' + M.esc(p.type) + ' · ' + M.esc(v ? v.name : p.venue) + ' · ' + p.perfs + ' performances</div></div>' +
+      M.tag(p.stage, p.stage === "Running" ? "good" : "ghost") + '</div>' +
+      '<div class="muted small" style="margin:6px 0 12px">' + M.esc(st ? st.note : "") + '</div>' +
+      '<div class="statrow">' +
+        M.stat("Rights", p.rights, ok ? "clear to sell" : "gate closed", ok ? "good" : "bad") +
+        M.stat("Budget", M.money(p.budget), M.money(p.spend) + " spent") +
+        M.stat("Seats sold", p.seatsSold ? p.seatsSold.toLocaleString() : "—", p.seatsSold ? M.pct(p.seatsSold / p.seatsHeld * 100, 1) + " paid capacity" : "not on sale") +
+      '</div>' +
+      (tasks.length ? '<div class="divider"></div><table><tbody>' + tasks.map(function (t) {
+        return '<tr><td><div class="t-main">' + M.esc(t.what) + '</div><div class="t-sub">' + M.esc(t.who) + ' · due ' + M.esc(t.due) + '</div></td></tr>';
+      }).join("") + '</tbody></table>' : '')));
+  });
+  c.appendChild(grid);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Law &amp; Counsel · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"law.html", crumb:"Law & Counsel" });
+  c.appendChild(M.page("Law & Counsel",
+    "The 501(c)(3) desk. Every answer is graded — settled, gray, or go get a lawyer — and carries the reasoning behind the grade."));
+
+  c.appendChild(M.card(
+    '<div class="fence"><b>Read me first.</b> Counsel is a knowledge desk, not a lawyer, and nothing here is legal advice. It is sourced general information for a 501(c)(3) community theatre in Idaho. A confidence-graded triad — <b>Statute · Precedent · Chair</b> — stands behind every answer, and anything high-stakes is routed to see an attorney. For anything binding, hire a licensed Idaho attorney.</div>' +
+    '<div class="row" style="gap:8px;margin-top:14px">' +
+      '<span class="lawgrade clear">🟢 CLEAR — settled + cited</span>' +
+      '<span class="lawgrade caution">🟡 CAUTION — gray, document it</span>' +
+      '<span class="lawgrade attorney">🔴 ATTORNEY — get a lawyer</span>' +
+    '</div>'));
+
+  c.appendChild(M.card(
+    '<h2>Ask Counsel</h2>' +
+    '<div class="card-sub">Counsel takes any question the desk holds a graded answer for — even when it looks like a money or a volunteer question. Restricted grant money is a law question, not a budgeting one.</div>' +
+    '<div class="row" style="margin-bottom:12px">' +
+      '<input id="q" placeholder="e.g. Can we use grant money for a different show?" style="flex:1;min-width:280px">' +
+      '<button class="btn brass" id="go">Ask</button></div>' +
+    '<div class="row" style="gap:6px">' +
+      M.LAW_DESK.map(function (x) { return '<button class="btn ghost sm ex" data-q="' + M.esc(x.q) + '">' + M.esc(x.q) + '</button>'; }).join("") +
+    '</div><div id="out"></div>', "nora"));
+
+  function render(hit) {
+    var out = document.getElementById("out");
+    if (!hit) {
+      out.innerHTML = '<div class="divider"></div><div class="empty">Counsel does not hold a graded answer for that one. It declines rather than guessing — which is the point of the desk.</div>';
+      return;
+    }
+    var g = M.LAW_GRADES[hit.grade];
+    out.innerHTML =
+      '<div class="divider"></div>' +
+      '<div class="lawgrade ' + hit.grade.toLowerCase() + '">' + g.dot + ' ' + M.esc(g.label) + '</div>' +
+      '<div class="busrow conclude" style="display:block"><div class="bus-topic">counsel.chair</div>' +
+      '<div class="bus-body" style="margin-top:5px">' + M.esc(hit.chair) + '</div></div>' +
+      '<ul class="reasons">' +
+        '<li><span class="rtag data">STATUTE</span><span>' + M.esc(hit.statute) + '</span></li>' +
+        '<li><span class="rtag data">PRECEDENT</span><span>' + M.esc(hit.precedent) + '</span></li>' +
+        '<li><span class="rtag assumption">WHY THIS GRADE</span><span>' + M.esc(hit.why) + '</span></li>' +
+      '</ul>' +
+      '<div class="srcnote">Not legal advice. For anything binding, hire a licensed Idaho attorney.</div>';
+  }
+  setTimeout(function () {
+    function ask(q) { render(M.lawAsk(q)); }
+    document.getElementById("go").addEventListener("click", function () { ask(document.getElementById("q").value.trim()); });
+    document.getElementById("q").addEventListener("keydown", function (e) { if (e.key === "Enter") ask(this.value.trim()); });
+    Array.prototype.forEach.call(document.querySelectorAll(".ex"), function (b) {
+      b.addEventListener("click", function () { document.getElementById("q").value = this.dataset.q; ask(this.dataset.q); });
+    });
+  }, 0);
+
+  c.appendChild(M.card(
+    '<h2>Open compliance items on this floor</h2>' +
+    '<table><tbody>' +
+      '<tr><td>Productions without secured rights</td><td class="num"><b>' + M.rightsUnsecured(d).length + '</b></td><td>' + M.tag("Blocks going on sale", "bad") + '</td></tr>' +
+      '<tr><td>Restricted funds on the books</td><td class="num"><b>' + M.restrictedFunds(d).length + '</b></td><td>' + M.tag("Cannot be redirected", "watch") + '</td></tr>' +
+      '<tr><td>Gifts with no written acknowledgment</td><td class="num"><b>' + M.unacknowledgedGifts(d).length + '</b></td><td>' + M.tag("Donor substantiation", "watch") + '</td></tr>' +
+      '<tr><td>Idaho sales tax owed on admissions</td><td class="num"><b>' + M.money(M.salesTaxOwed(d)) + '</b></td><td>' + M.tag("Remit on schedule", "watch") + '</td></tr>' +
+      '<tr><td>Directors without a conflict-of-interest form</td><td class="num"><b>' + d.board.filter(function (b) { return !b.coi; }).length + '</b></td><td>' + M.tag("Governance evidence", "watch") + '</td></tr>' +
+    '</tbody></table>'));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Approval Desk · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical;
+  var c = M.mount({ active:"approvals.html", crumb:"Approval Desk" });
+  c.appendChild(M.page("Approval Desk",
+    "Ghost Mode. The org clears everything it honestly can; only a true fence reaches a person — a send, a spend, a price, a publish, or booking a human."));
+
+  function draw() {
+    var pend = M.approvals().filter(function (a) { return a.state === "Pending"; });
+    var done = M.approvals().filter(function (a) { return a.state !== "Pending"; });
+    var host = document.getElementById("desk");
+    host.innerHTML =
+      '<table><thead><tr><th>Waiting on you</th><th>Fence</th><th></th></tr></thead><tbody>' +
+      (pend.length ? pend.map(function (a) {
+        return '<tr><td><div class="t-main">' + M.esc(a.title) + '</div><div class="t-sub">' + M.esc(a.summary) + '</div></td>' +
+          '<td>' + M.tag(a.kind, "watch") + '<div class="t-sub">' + M.esc(a.by) + '</div></td>' +
+          '<td><button class="btn ghost sm ok" data-id="' + a.id + '">Approve</button> ' +
+          '<button class="btn ghost sm no" data-id="' + a.id + '">Decline</button></td></tr>';
+      }).join("") : '<tr><td colspan="3" class="empty">The desk is empty. That is the goal — a desk trending toward empty is the autonomy scoreboard.</td></tr>') +
+      '</tbody></table>' +
+      (done.length ? '<div class="divider"></div><table><tbody>' + done.map(function (a) {
+        return '<tr><td>' + M.esc(a.title) + '</td><td>' + M.tag(a.state, a.state === "Approved" ? "good" : "") + '</td></tr>';
+      }).join("") + '</tbody></table>' : '');
+    Array.prototype.forEach.call(host.querySelectorAll(".ok"), function (b) {
+      b.addEventListener("click", function () { M.decideApproval(this.dataset.id, "Approved"); M.toast("Approved — still nothing left this browser.", "ok"); draw(); });
+    });
+    Array.prototype.forEach.call(host.querySelectorAll(".no"), function (b) {
+      b.addEventListener("click", function () { M.decideApproval(this.dataset.id, "Declined"); M.toast("Declined.", ""); draw(); });
+    });
+  }
+  c.appendChild(M.card('<h2>The fences</h2>' +
+    '<div class="card-sub">Stage something from the Rights room or Development and it lands here. Nothing on this floor can actually send, spend or publish — that is by design, not a limitation of the demo.</div>' +
+    '<div id="desk"></div>'));
+  setTimeout(draw, 0);
+})();
+</script>
+</body>
+</html>

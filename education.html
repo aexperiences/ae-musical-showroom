@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Classes &amp; Camps · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"education.html", crumb:"Classes & Camps" });
+  c.appendChild(M.page("Classes & Camps",
+    "Education is real revenue and the reason the company exists in ten years. Enrolment, tuition, scholarships and a roster a teacher can actually use."));
+
+  var seats = d.classes.reduce(function (s,x) { return s + x.seats; }, 0);
+  var enrolled = d.classes.reduce(function (s,x) { return s + x.enrolled; }, 0);
+  var schol = d.classes.reduce(function (s,x) { return s + (x.schol||0); }, 0);
+  c.appendChild(M.card(
+    '<h2>The programme</h2>' +
+    '<div class="statrow">' +
+      M.stat("Enrolled", enrolled + " / " + seats, M.pct(enrolled / seats * 100, 0) + " of capacity") +
+      M.stat("Tuition, net", M.money(M.tuitionRevenue(d)), "after scholarships") +
+      M.stat("Scholarship seats", schol, M.pct(schol / enrolled * 100, 0) + " of enrolment", "good") +
+      M.stat("Classes", d.classes.length, "running this term") +
+    '</div>'));
+
+  var rows = d.classes.map(function (x) {
+    var v = d.house.venues.filter(function (q) { return q.k === x.venue; })[0];
+    var fill = x.enrolled / x.seats;
+    return '<tr><td><div class="t-main">' + M.esc(x.name) + '</div>' +
+      '<div class="t-sub">Ages ' + M.esc(x.ages) + ' · ' + M.esc(x.sched) + ' · ' + M.esc(v ? v.name : x.venue) + '</div></td>' +
+      '<td class="num">' + M.money(x.tuition) + '</td>' +
+      '<td class="num">' + x.enrolled + ' / ' + x.seats + '</td>' +
+      '<td>' + M.tag(fill >= 1 ? "Full" : (fill < 0.5 ? "Under half" : "Filling"), fill >= 1 ? "good" : (fill < 0.5 ? "bad" : "watch")) + '</td>' +
+      '<td class="num">' + (x.schol || 0) + '</td>' +
+      '<td class="num"><b>' + M.money(x.tuition * Math.max(0, x.enrolled - (x.schol||0))) + '</b></td></tr>';
+  }).join("");
+  c.appendChild(M.card(
+    '<h2>Every class on the books</h2>' +
+    '<div class="card-sub">A class still under half by the second week rarely fills. Running it anyway is a money decision, and it should be made with the number in front of you.</div>' +
+    '<table><thead><tr><th>Class</th><th class="num">Tuition</th><th class="num">Enrolled</th><th>State</th><th class="num">Schol.</th><th class="num">Net</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table>' +
+    M.srcNote("Scholarship seats are counted out of tuition revenue, not quietly added back. A programme that reports gross tuition is reporting money it never collected.")));
+})();
+</script>
+</body>
+</html>

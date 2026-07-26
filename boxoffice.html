@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Box Office · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"boxoffice.html", crumb:"Box Office" });
+  c.appendChild(M.page("Box Office",
+    "Seats, holds and walk-ups — and every dollar of it stays in the house. No per-ticket fee, no per-seat cut, no platform between the playhouse and its patrons."));
+
+  c.appendChild(M.card(
+    '<h2>Revenue kept</h2>' +
+    '<div class="card-sub">The number a board remembers. A per-ticket platform charges by the seat; this one does not, and the difference is money the house keeps.</div>' +
+    '<div class="statrow">' +
+      M.stat("Revenue kept", M.money(M.revenueKept(d)), "season to date", "good") +
+      M.stat("Fees not paid", M.money(M.feesAvoided(d)), "modelled at " + M.money(M.PLATFORM_FEE_PER_TICKET) + "/ticket") +
+      M.stat("Seats sold", M.ticketsSold(d).toLocaleString(), "shows that have run") +
+      M.stat("Paid capacity", M.pct(M.paidCapacity(d), 1), "sold vs offered") +
+      M.stat("Idaho sales tax", M.money(M.salesTaxOwed(d)), "owed on admissions", "watch") +
+    '</div>' +
+    M.srcNote("Idaho state sales tax rate 6%. Whether a given ticket type is taxable is graded by Counsel, not asserted here. The avoided-fee figure is modelled — change it in the seed to match a real quote.")));
+
+  var grid = document.createElement("div"); grid.className = "grid g2";
+  grid.appendChild(M.card(
+    '<h2>The price ladder</h2>' +
+    '<div class="card-sub">What the house charges at the window.</div>' +
+    '<table><thead><tr><th>Ticket</th><th class="num">Price</th></tr></thead><tbody>' +
+    d.prices.map(function (p) { return '<tr><td>' + M.esc(p.name) + '</td><td class="num">' + M.money(p.amt) + '</td></tr>'; }).join("") +
+    '</tbody></table>'));
+
+  grid.appendChild(M.card(
+    '<h2>The houses</h2>' +
+    '<div class="card-sub">A community playhouse rarely has one room. Each venue carries its own capacity.</div>' +
+    '<table><thead><tr><th>Venue</th><th class="num">Seats</th></tr></thead><tbody>' +
+    d.house.venues.map(function (v) { return '<tr><td>' + M.esc(v.name) + '</td><td class="num">' + v.seats + '</td></tr>'; }).join("") +
+    '</tbody></table>'));
+  c.appendChild(grid);
+
+  var onsale = d.productions.filter(function (p) { return p.seatsSold > 0 || p.stage === "Running"; });
+  c.appendChild(M.card(
+    '<h2>What has actually sold</h2>' +
+    '<div class="card-sub">Paid capacity counts only shows that have run — a season average that includes unopened shows is a vanity number.</div>' +
+    '<table><thead><tr><th>Production</th><th class="num">Sold</th><th class="num">Offered</th><th class="num">Paid capacity</th></tr></thead><tbody>' +
+    (onsale.length ? onsale.map(function (p) {
+      return '<tr><td>' + M.esc(p.title) + '</td><td class="num">' + p.seatsSold.toLocaleString() + '</td>' +
+        '<td class="num">' + p.seatsHeld.toLocaleString() + '</td>' +
+        '<td class="num"><b>' + M.pct(p.seatsSold / p.seatsHeld * 100, 1) + '</b></td></tr>';
+    }).join("") : '<tr><td colspan="4" class="empty">No show has opened yet this season.</td></tr>') +
+    '</tbody></table>'));
+})();
+</script>
+</body>
+</html>

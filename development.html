@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Development · Musical OS V3.0</title>
+<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Powered by Accelerated Experiences LLC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="musical.css">
+</head>
+<body>
+<script src="musical.js"></script>
+<script>
+(function () {
+  var M = window.Musical, d = M.db();
+  var c = M.mount({ active:"development.html", crumb:"Development" });
+  c.appendChild(M.page("Development · Giving",
+    "Half of what a playhouse runs on is given, not earned. This room is the gifts, the pledges, the restricted money you must not touch, and the acknowledgments the house owes."));
+
+  var un = M.unacknowledgedGifts(d), rest = M.restrictedFunds(d);
+  var pledges = d.gifts.filter(function (g) { return g.kind === "Pledge"; });
+  var outstanding = pledges.reduce(function (s,g) { return s + ((g.pledged||0) - (g.paid||0)); }, 0);
+  c.appendChild(M.card(
+    '<h2>Contributed income</h2>' +
+    '<div class="statrow">' +
+      M.stat("Contributed", M.money(M.contributedTotal(d)), M.pct(M.contributedShare(d), 1) + " of all revenue") +
+      M.stat("Unacknowledged", un.length, "gifts with no letter on file", un.length ? "bad" : "good") +
+      M.stat("Pledged, unpaid", M.money(outstanding), "still to collect", outstanding ? "watch" : "good") +
+      M.stat("Restricted", M.money(rest.reduce(function (s,g) { return s + g.amt; }, 0)), rest.length + " fund(s) — not spendable at will", "watch") +
+      M.stat("Cost to raise $1", "$" + M.costToRaiseADollar(d).toFixed(2), "fundraising cost ÷ contributed") +
+    '</div>' +
+    M.srcNote("No benchmark is shown against cost-to-raise-a-dollar. Watchdog thresholds are not sourced in this build — this is the house's own ratio, nothing more.")));
+
+  c.appendChild(M.card(
+    '<h2>Restricted funds — read this before you spend</h2>' +
+    '<div class="lawgrade attorney">🔴 ATTORNEY — get a lawyer</div>' +
+    (rest.length ? '<table><thead><tr><th>Funder</th><th class="num">Amount</th><th>The restriction</th></tr></thead><tbody>' +
+      rest.map(function (g) {
+        return '<tr><td><div class="t-main">' + M.esc(g.donor) + '</div><div class="t-sub">' + M.esc(g.kind) + ' · ' + M.esc(g.date) + '</div></td>' +
+          '<td class="num"><b>' + M.money(g.amt) + '</b></td>' +
+          '<td>' + M.esc(g.restriction || "—") + '</td></tr>';
+      }).join("") + '</tbody></table>' : '<div class="empty">No restricted funds on the books.</div>') +
+    '<div class="fence" style="margin-top:14px"><b>Moving restricted money to general operating is a breach of the restriction, not a budgeting decision</b> — even when the house fully intends to put it back. If the programme genuinely cannot happen, go back to the funder in writing and ask them to release or redirect it.</div>' +
+    M.srcNote("Counsel is a knowledge desk, not a lawyer, and this is not legal advice. For anything binding, hire a licensed Idaho attorney.")));
+
+  var rows = d.gifts.map(function (g) {
+    var lvl = M.GIVING_LEVELS.slice().reverse().filter(function (l) { return g.amt >= l.min; })[0];
+    return '<tr><td><div class="t-main">' + M.esc(g.donor) + '</div>' +
+      '<div class="t-sub">' + M.esc(g.date) + ' · ' + M.esc(g.fund) + (g.inkindNote ? ' · ' + M.esc(g.inkindNote) : '') + '</div></td>' +
+      '<td>' + M.tag(g.kind, g.kind === "Grant" ? "watch" : "ghost") + '</td>' +
+      '<td>' + (lvl ? M.esc(lvl.name) : "—") + '</td>' +
+      '<td class="num">' + M.money(g.amt) + (g.kind === "Pledge" ? '<div class="t-sub">' + M.money(g.paid||0) + ' paid</div>' : '') + '</td>' +
+      '<td>' + (g.ack ? M.tag("Acknowledged", "good") : '<button class="btn ghost sm ack" data-id="' + g.id + '">Draft letter</button>') + '</td></tr>';
+  }).join("");
+  c.appendChild(M.card(
+    '<h2>Every gift on the books</h2>' +
+    '<div class="card-sub">A pledge counts what has actually been <i>paid</i>, never what was promised. That is the difference between a development report and a wish.</div>' +
+    '<table><thead><tr><th>Donor</th><th>Kind</th><th>Level</th><th class="num">Amount</th><th></th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table>'));
+
+  setTimeout(function () {
+    Array.prototype.forEach.call(document.querySelectorAll(".ack"), function (b) {
+      b.addEventListener("click", function () {
+        var g = d.gifts.filter(function (x) { return x.id === this.dataset.id; }.bind(this))[0];
+        M.stage("Send", "Acknowledgment letter — " + g.donor, "Written acknowledgment for a " + M.money(g.amt) + " " + g.kind.toLowerCase() + " gift.", "Development");
+        M.toast("Drafted and staged on the Approval Desk — nothing sent.", "ok");
+      });
+    });
+  }, 0);
+})();
+</script>
+</body>
+</html>
