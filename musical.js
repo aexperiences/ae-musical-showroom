@@ -25,7 +25,7 @@
   var STORE_URL = "https://www.aexperiences.com/hubs/theater.html";
   var SHOP_URL  = "https://www.aexperiences.com/shop.html";
   var IDLE_MS = 20 * 60 * 1000;        /* wipe the floor 20 min after they walk away */
-  var STORE = sessionStorage;
+  var STORE = (function(){ try{ localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return localStorage; }catch(e){ return sessionStorage; } })();
 
   function now() { return Date.now(); }
   function read() {
@@ -361,7 +361,7 @@
      Groups mirror how a playhouse actually thinks about itself. */
   var DEPTS = [
     { group:"The Playhouse", items:[
-      { label:"Command Center", href:"dashboard.html", ic:"⌘" }, { href:"calendar.html", label:"Calendar", ic:"▤" },
+      { label:"Command Center", href:"dashboard.html", ic:"⌘" }, { href:"calendar.html", label:"Calendar", ic:"▤" }, { href:"contacts.html", label:"Contacts", ic:"☎" }, { href:"connect.html", label:"Connect · Video", ic:"◉" }, { href:"records.html", label:"Records · Filing", ic:"▤" },
       { label:"Approval Desk",  href:"approvals.html", ic:"✓" }
     ]},
     { group:"Season & Stage", items:[
@@ -1014,7 +1014,7 @@
     bar.innerHTML =
       '<div class="crumbs">Musical OS <span class="mono" style="opacity:.62;font-size:11px">V3.0</span> · <b>'+esc(crumb)+'</b></div>'+
       '<div class="spacer"></div>'+
-      '<div class="tierpill" id="tierPill" role="button" tabindex="0">'+
+      '<div class="tierpill" id="tierPillStatic">'+
         '<span class="dot"></span><div><b>'+esc(p.tier.name)+(p.changed?' <i class="cfg">configured</i>':'')+'</b> '+
         '<span class="price">'+money(p.mo)+'/mo · '+money(p.build)+' build</span></div>'+
         '<span class="chev">▾</span></div>'+
@@ -1260,4 +1260,40 @@
   }
   function boot(){ init(); setTimeout(init,200); setTimeout(init,600); setTimeout(init,1400); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+
+
+/* ── AE Connect — hub-wide incoming-call watcher (ae-connect-watcher) ── */
+(function(){
+  if (typeof document==='undefined') return;
+  var API=(window.MUSICAL_API||'https://ae-connect-api.vercel.app')+'/api/connect', NS='musical';
+  function me(){ try{ return JSON.parse(sessionStorage.getItem('musical_connect_me')); }catch(e){ return null; } }
+  function post(p){ return fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(Object.assign({ns:NS},p))}).then(function(r){return r.json();}).catch(function(){return {ok:false};}); }
+  var showing=false;
+  function card(r){
+    if(showing)return; showing=true;
+    var d=document.createElement('div');
+    d.style.cssText='position:fixed;right:18px;top:74px;z-index:9600;background:#161d24;color:#eaf1f6;border-radius:14px;padding:16px 18px;box-shadow:0 20px 60px rgba(0,0,0,.45);max-width:300px;font-family:system-ui,sans-serif;border-left:4px solid #e8a33d';
+    d.innerHTML='<div style="font-weight:700;font-size:15px">\ud83d\udcf9 '+(r.name||'Someone')+' is calling</div>'+
+      '<div style="font-size:12px;opacity:.7;margin:3px 0 12px">'+(r.subject||'Incoming video call')+'</div>'+
+      '<button id="aeJoin" style="font:inherit;font-weight:700;background:#e8a33d;color:#241a08;border:none;border-radius:9px;padding:10px 16px;cursor:pointer">Join</button> '+
+      '<button id="aeDis" style="font:inherit;background:none;border:1px solid #3f5468;color:#9fb2c2;border-radius:9px;padding:10px 14px;cursor:pointer">Dismiss</button>';
+    document.body.appendChild(d);
+    function done(){ try{document.body.removeChild(d);}catch(e){} showing=false; }
+    d.querySelector('#aeDis').onclick=done;
+    d.querySelector('#aeJoin').onclick=function(){ done(); var m=me();
+      function go(){ window.MusicalMeet.open({room:r.room,displayName:m?m.name:'Guest',subject:r.subject||''}); }
+      if(window.MusicalMeet) go(); else { var sc=document.createElement('script'); sc.src='musical-rtc.js'; sc.onload=go; document.head.appendChild(sc); } };
+  }
+  function tick(){ var m=me(); if(!m) return;
+    post({do:'poll',me:m.slug}).then(function(r){
+      if(r&&r.ok&&r.ring&&r.ring.room) card(r.ring);
+      if(r&&r.ok&&typeof r.unread==='number'){
+        var a=document.querySelector('a[href="connect.html"]');
+        if(a){ var b=a.querySelector('.ae-ub');
+          if(r.unread>0){ if(!b){ b=document.createElement('span'); b.className='ae-ub';
+            b.style.cssText='display:inline-block;min-width:17px;text-align:center;background:#e8a33d;color:#241a08;border-radius:999px;font-size:10.5px;font-weight:700;padding:1px 5px;margin-left:7px'; a.appendChild(b); }
+            b.textContent=r.unread; } else if(b){ b.remove(); } } }
+    }); }
+  setInterval(tick,6000); setTimeout(tick,1500);
 })();
