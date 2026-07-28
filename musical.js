@@ -361,7 +361,7 @@
      Groups mirror how a playhouse actually thinks about itself. */
   var DEPTS = [
     { group:"The Playhouse", items:[
-      { label:"Command Center", href:"dashboard.html", ic:"⌘" },
+      { label:"Command Center", href:"dashboard.html", ic:"⌘" }, { href:"calendar.html", label:"Calendar", ic:"▤" },
       { label:"Approval Desk",  href:"approvals.html", ic:"✓" }
     ]},
     { group:"Season & Stage", items:[
