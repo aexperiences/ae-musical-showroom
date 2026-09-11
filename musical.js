@@ -340,16 +340,16 @@
   };
 
   var TIERS = {
-    community: { key:"community", name:"Community", rank:1, mo:650, build:4000,
+    community: { key:"community", name:"Core", rank:1, mo:650, build:0,
       desc:"The house that runs on volunteers. Box office, the season, patrons, the rights gate and the books.",
       base:"One venue · up to 10 seats",
       includes:["boxoffice","productions","rights","patrons","volunteers","books"] },
-    producing: { key:"producing", name:"Producing", rank:2, mo:1500, build:8400,
+    producing: { key:"producing", name:"Elite", rank:2, mo:1500, build:0,
       desc:"The house that fundraises. Adds giving, sponsorship, education, staffing, marketing, the playbill and operations.",
       base:"One venue · up to 25 seats",
       includes:["boxoffice","productions","rights","patrons","volunteers","books",
                 "dev","sponsors","education","staffing","marketing","program","ops"] },
-    grandsuite: { key:"grandsuite", name:"Regional / Multi-venue", rank:3, mo:3200, build:13800,
+    grandsuite: { key:"grandsuite", name:"Mothership", rank:3, mo:3200, build:0,
       desc:"Everything switched on — the scene shop, the creative studio, HR, governance, the 501(c)(3) law desk and the full agent org.",
       base:"Multi-venue · unlimited seats · dedicated environment · data migration",
       includes:["boxoffice","productions","rights","patrons","volunteers","books",
