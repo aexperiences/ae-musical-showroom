@@ -1,5 +1,5 @@
 /* ============================================================================
-   MUSICAL OS  ·  V3.0 Grandsuite showroom engine
+   MUSICAL OS  ·  V3.5 Grandsuite showroom engine
    The operating system for a non-profit community playhouse.
    Accelerated Experiences LLC.
 
@@ -622,7 +622,7 @@
 })(window);
 
 /* ============================================================================
-   MUSICAL OS · V3.0 — part two: the org, the law desk, and the chrome.
+   MUSICAL OS · V3.5 — part two: the org, the law desk, and the chrome.
    ============================================================================ */
 (function (global) {
   "use strict";
@@ -1012,7 +1012,7 @@
     var p = C.priceNow();
     var bar = document.createElement("div"); bar.className = "topbar";
     bar.innerHTML =
-      '<div class="crumbs">Musical OS <span class="mono" style="opacity:.62;font-size:11px">V3.0</span> · <b>'+esc(crumb)+'</b></div>'+
+      '<div class="crumbs">Musical OS <span class="mono" style="opacity:.62;font-size:11px">V3.5</span> · <b>'+esc(crumb)+'</b></div>'+
       '<div class="spacer"></div>'+
       '<div class="tierpill" id="tierPillStatic">'+
         '<span class="dot"></span><div><b>'+esc(p.tier.name)+(p.changed?' <i class="cfg">configured</i>':'')+'</b> '+
