@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+<defs>
+<linearGradient id="tile" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0%" stop-color="#f39ad0"/><stop offset="46%" stop-color="#b03a86"/><stop offset="100%" stop-color="#3a0b2a"/></linearGradient>
+<linearGradient id="glare" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity=".22"/><stop offset="44%" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="halo" cx="0.5" cy="0.46" r="0.42"><stop offset="0%" stop-color="#ffe2a6" stop-opacity=".30"/><stop offset="100%" stop-color="#ffe2a6" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1024" height="1024" fill="url(#tile)"/>
+<rect width="1024" height="1024" fill="url(#halo)"/>
+<g fill="#e0a83a" opacity=".13"><polygon points="512,470 463,-88 561,-88"/><polygon points="512,470 690,112 733,136"/><polygon points="512,470 971,149 1020,233"/><polygon points="512,470 911,446 911,494"/><polygon points="512,470 1020,707 971,791"/><polygon points="512,470 733,804 690,828"/><polygon points="512,470 561,1028 463,1028"/><polygon points="512,470 334,828 291,804"/><polygon points="512,470 53,791 4,707"/><polygon points="512,470 113,494 113,446"/><polygon points="512,470 4,233 53,149"/><polygon points="512,470 291,136 334,112"/></g>
+<rect width="1024" height="1024" fill="url(#glare)"/>
+
+<path d="M0 840 L1024 840 L1024 1024 L0 1024Z" fill="#1d0515" opacity=".35"/>
+<ellipse cx="512" cy="905" rx="340" ry="26" fill="#12030c" opacity=".5"/>
+<g fill="#f4a820"><rect x="170" y="190" width="22" height="22" rx="4" transform="rotate(20 181 201)"/><rect x="820" y="230" width="22" height="22" rx="4" transform="rotate(-25 831 241)"/><circle cx="880" cy="420" r="12"/><circle cx="150" cy="430" r="12"/></g>
+<g fill="#fffaf0" opacity=".9"><rect x="250" y="150" width="18" height="18" rx="4" transform="rotate(35 259 159)"/><rect x="760" y="140" width="18" height="18" rx="4" transform="rotate(-15 769 149)"/></g>
+<g fill="#3a6fc4"><rect x="860" y="320" width="20" height="20" rx="4" transform="rotate(15 870 330)"/><rect x="190" y="320" width="20" height="20" rx="4" transform="rotate(-30 200 330)"/></g>
+<!-- calendar page -->
+<rect x="250" y="250" width="380" height="440" rx="34" fill="#fffaf0"/>
+<rect x="250" y="250" width="380" height="120" rx="34" fill="#c8102e"/><rect x="250" y="330" width="380" height="40" fill="#c8102e"/>
+<rect x="320" y="220" width="30" height="80" rx="15" fill="#2b2724"/><rect x="530" y="220" width="30" height="80" rx="15" fill="#2b2724"/>
+<text x="440" y="340" font-family="Arial Black,Arial" font-weight="900" font-size="58" fill="#fff" text-anchor="middle">SAT</text>
+<text x="440" y="580" font-family="Arial Black,Arial" font-weight="900" font-size="200" fill="#2b2724" text-anchor="middle">18</text>
+<!-- clinking glasses -->
+<g transform="rotate(-14 680 560)"><path d="M630 420 L700 420 L690 540 Q665 560 640 540 Z" fill="#fff" opacity=".95"/><path d="M636 450 L694 450 L688 536 Q665 552 642 536 Z" fill="#f4c55a"/><rect x="658" y="550" width="14" height="110" fill="#fff"/><ellipse cx="665" cy="664" rx="44" ry="12" fill="#fff"/></g>
+<g transform="rotate(14 790 560)"><path d="M750 420 L820 420 L810 540 Q785 560 760 540 Z" fill="#fff" opacity=".95"/><path d="M756 450 L814 450 L808 536 Q785 552 762 536 Z" fill="#f4c55a"/><rect x="778" y="550" width="14" height="110" fill="#fff"/><ellipse cx="785" cy="664" rx="44" ry="12" fill="#fff"/></g>
+<g fill="#fff"><path d="M725 380 l8 -40 l8 40 Z"/><path d="M690 395 l-28 -26 l38 12 Z"/><path d="M760 395 l28 -26 l-38 12 Z"/></g>
+<!-- deposit tag -->
+<g transform="rotate(-8 400 760)">
+ <path d="M240 700 L540 700 L580 760 L540 820 L240 820 Z" fill="#3f9d5b"/>
+ <circle cx="530" cy="760" r="14" fill="#b03a86"/>
+ <text x="380" y="780" font-family="Arial Black,Arial" font-weight="900" font-size="54" fill="#fff" text-anchor="middle">$ PAID</text>
+</g>
+</svg>

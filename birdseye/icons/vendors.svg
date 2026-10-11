@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+<defs>
+<linearGradient id="tile" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0%" stop-color="#8ae0d6"/><stop offset="46%" stop-color="#1f7f7a"/><stop offset="100%" stop-color="#062221"/></linearGradient>
+<linearGradient id="glare" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity=".22"/><stop offset="44%" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="halo" cx="0.5" cy="0.46" r="0.42"><stop offset="0%" stop-color="#ffe2a6" stop-opacity=".30"/><stop offset="100%" stop-color="#ffe2a6" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="1024" height="1024" fill="url(#tile)"/>
+<rect width="1024" height="1024" fill="url(#halo)"/>
+<g fill="#e0a83a" opacity=".13"><polygon points="512,470 463,-88 561,-88"/><polygon points="512,470 690,112 733,136"/><polygon points="512,470 971,149 1020,233"/><polygon points="512,470 911,446 911,494"/><polygon points="512,470 1020,707 971,791"/><polygon points="512,470 733,804 690,828"/><polygon points="512,470 561,1028 463,1028"/><polygon points="512,470 334,828 291,804"/><polygon points="512,470 53,791 4,707"/><polygon points="512,470 113,494 113,446"/><polygon points="512,470 4,233 53,149"/><polygon points="512,470 291,136 334,112"/></g>
+<rect width="1024" height="1024" fill="url(#glare)"/>
+<path d="M0 820 L1024 820 L1024 1024 L0 1024Z" fill="#000" opacity=".22"/><ellipse cx="512" cy="905" rx="360" ry="26" fill="#000" opacity=".45"/>
+<rect x="300" y="640" width="424" height="200" rx="16" fill="#a86c30"/><g fill="#7a4a18"><rect x="300" y="700" width="424" height="16"/><rect x="300" y="770" width="424" height="16"/></g>
+<circle cx="380" cy="620" r="44" fill="#c8102e"/><circle cx="470" cy="610" r="44" fill="#3f9d5b"/><circle cx="560" cy="620" r="44" fill="#e8952a"/><circle cx="650" cy="612" r="44" fill="#c8102e"/>
+<path d="M110 360 L360 360 L420 420 L360 470 L110 470Z" fill="#2b4a7a"/>
+<path d="M914 360 L664 360 L604 420 L664 470 L914 470Z" fill="#fffaf0"/>
+<path d="M330 380 Q420 330 512 380 Q600 330 690 380 L700 440 Q600 520 512 470 Q420 520 330 440Z" fill="#f0b98d"/>
+<path d="M440 410 l40 30 M480 400 l40 30 M520 400 l36 28" stroke="#c58a62" stroke-width="10" stroke-linecap="round"/>
+<g transform="rotate(14 770 300)"><path d="M700 220 L840 220 L860 260 L840 300 L700 300Z" fill="#f4a820"/><circle cx="722" cy="260" r="10" fill="#1f7f7a"/><text x="790" y="275" font-family="Arial Black,Arial" font-weight="900" font-size="36" fill="#2b2724" text-anchor="middle">$</text></g>
+</svg>
