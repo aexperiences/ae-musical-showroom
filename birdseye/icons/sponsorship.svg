@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+<defs>
+<linearGradient id="tile" x1="0" y1="0" x2="0.35" y2="1">
+<stop offset="0%" stop-color="#b8a06f"/><stop offset="46%" stop-color="#6a5024"/><stop offset="100%" stop-color="#1f1606"/></linearGradient>
+<linearGradient id="glare" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#fff" stop-opacity=".20"/><stop offset="44%" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<linearGradient id="pap" x1="0" y1="0" x2="0.3" y2="1">
+<stop offset="0%" stop-color="#fdfbf4"/><stop offset="100%" stop-color="#e8e2d2"/></linearGradient>
+<linearGradient id="gild" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#ffe08a"/><stop offset="100%" stop-color="#b98d1c"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#e3e8ec"/><stop offset="100%" stop-color="#8e99a2"/></linearGradient>
+<linearGradient id="wood" x1="0" y1="0" x2="0.2" y2="1">
+<stop offset="0%" stop-color="#a9743f"/><stop offset="100%" stop-color="#5d3c1c"/></linearGradient>
+<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<linearGradient id="screen" x1="0" y1="0" x2="0.3" y2="1">
+<stop offset="0%" stop-color="#1d3a4e"/><stop offset="100%" stop-color="#0a1824"/></linearGradient>
+<linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#e0a83a"/><stop offset="100%" stop-color="#9a6f14"/></linearGradient>
+</defs>
+<rect width="1024" height="1024" fill="url(#tile)"/><rect width="1024" height="1024" fill="url(#glare)"/>
+<circle cx="512" cy="420" r="254" fill="#e0a83a" opacity="0.040"/><path d="M527 270 L512 110 L497 270 Z" fill="#e0a83a" opacity=".18"/><path d="M595 295 L624 227 L579 286 Z" fill="#e0a83a" opacity=".18"/><path d="M649 358 L780 265 L634 332 Z" fill="#e0a83a" opacity=".18"/><path d="M662 429 L735 420 L662 411 Z" fill="#e0a83a" opacity=".18"/><path d="M634 508 L780 575 L649 482 Z" fill="#e0a83a" opacity=".18"/><path d="M579 554 L624 613 L595 545 Z" fill="#e0a83a" opacity=".18"/><path d="M497 570 L512 730 L527 570 Z" fill="#e0a83a" opacity=".18"/><path d="M429 545 L400 613 L445 554 Z" fill="#e0a83a" opacity=".18"/><path d="M375 482 L244 575 L390 508 Z" fill="#e0a83a" opacity=".18"/><path d="M362 411 L289 420 L362 429 Z" fill="#e0a83a" opacity=".18"/><path d="M390 332 L244 265 L375 358 Z" fill="#e0a83a" opacity=".18"/><path d="M445 286 L400 227 L429 295 Z" fill="#e0a83a" opacity=".18"/>
+<path d="M0 806 L1024 806 L1024 1024 L0 1024 Z" fill="#1f1606" opacity=".72"/><rect x="0" y="806" width="1024" height="5" fill="#fff" opacity=".10"/>
+<ellipse cx="512" cy="884" rx="340" ry="32" fill="#000" opacity=".45"/>
+<g transform="translate(150 776)"><rect x="0" y="0" width="724" height="30" rx="8" fill="url(#wood)"/><rect x="0" y="0" width="724" height="7" fill="#fff" opacity=".16"/><rect x="26" y="30" width="20" height="0" fill="#3c2612"/><rect x="678" y="30" width="20" height="0" fill="#3c2612"/></g><g transform="translate(256 310)"><rect width="400" height="466" rx="14" fill="url(#pap)"/><rect width="400" height="92" rx="14" fill="#7a1024"/><rect x="34" y="34" width="210" height="24" rx="12" fill="#fff" opacity=".85"/><rect x="34" y="140" width="332" height="54" rx="10" fill="#e0a83a" opacity=".9"/><rect x="60" y="158" width="200" height="18" rx="9" fill="#2a2008" opacity=".55"/><rect x="34" y="216" width="332" height="54" rx="10" fill="#c3c9d2" opacity=".9"/><rect x="60" y="234" width="172" height="18" rx="9" fill="#2a2008" opacity=".55"/><rect x="34" y="292" width="332" height="54" rx="10" fill="#c08a4a" opacity=".9"/><rect x="60" y="310" width="144" height="18" rx="9" fill="#2a2008" opacity=".55"/><rect x="34" y="368" width="332" height="54" rx="10" fill="#d8d0ba" opacity=".9"/><rect x="60" y="386" width="116" height="18" rx="9" fill="#2a2008" opacity=".55"/></g><polygon points="760,386 782,403 809,402 817,429 840,444 831,470 840,496 817,511 809,538 782,537 760,554 738,537 711,538 703,511 680,496 689,470 680,444 703,429 711,402 738,403" fill="url(#accent)"/><circle cx="760" cy="470" r="52" fill="none" stroke="#fff" stroke-width="5" opacity=".65"/><path d="M716 476 L744 502 L756 490 L774 506 L804 472" stroke="#2a1708" stroke-width="15" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
