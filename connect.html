@@ -78,13 +78,13 @@
   var T=window.Musical;
   var c=T.mount({active:"connect.html",crumb:"Connect"});
   var API=window.MUSICAL_API+'/api/connect'; var NS='musical';
-  var TEAM=[
-    {slug:"june-alvarez",name:"June Alvarez",role:"Artistic Director",init:"JA"},
-    {slug:"kate-donnelly",name:"Kate Donnelly",role:"Managing Director",init:"KD"},
-    {slug:"miles-obrien",name:"Miles O'Brien",role:"Production Manager",init:"MO"},
-    {slug:"sofia-reyes",name:"Sofia Reyes",role:"Box Office Manager",init:"SR"},
-    {slug:"hank-mueller",name:"Hank Mueller",role:"Technical Director",init:"HM"}
-  ];
+  /* The team — read from this system's own seeded people, never typed in here. */
+  var TEAM=(function(){ var D={}; try{ D=T.db()||{}; }catch(e){} var out=[], seen={};
+    function add(n,r){ n=String(n||"").trim(); if(!n||seen[n]) return; seen[n]=1;
+      var w=n.replace(/^Coach\s+/,"").replace(/,.*$/,"").split(/\s+/);
+      out.push({slug:n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),name:n,role:String(r||""),init:(((w[0]||"")[0]||"")+(w.length>1?w[w.length-1][0]:((w[0]||"")[1]||""))).toUpperCase()}); }
+    try{ var S=T.SEATS||{}; Object.keys(S).forEach(function(k){ var h=S[k]&&S[k].dh; if(h&&/\s/.test(h.name)) add(h.name,h.t); }); }catch(e){}
+    return out; })();
   var CHANNELS=[
     {ch:"company",name:"# company",desc:"The whole company"},
     {ch:"current-show",name:"# current-show",desc:"This production"},

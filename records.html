@@ -44,7 +44,7 @@
 (function () {
   var T=window.Musical;
   var c=T.mount({active:"records.html",crumb:"Records"});
-  var KEY="musical_records_v1";
+  var KEY="musical_records_v2";
 
   /* The filing plan — one cabinet per real thing the firm keeps. */
   var CABINETS=[
@@ -58,14 +58,19 @@
     {k:"venue",ic:"🏢",name:"The venue",desc:"Lease, insurance, safety, inspections."}
   ];
 
-  /* Seeded records — real McArthur artifacts where they exist, honestly labeled. */
-  var SEED=[
-    {cab:"rights",name:"Season 12 — performance licenses",kind:"pdf",tag:"sot",who:"Kate Donnelly",when:"2026-04-02",note:"Governs what we may perform."},
-    {cab:"productions",name:"Our Town — prompt book",kind:"doc",tag:"wip",who:"Miles O'Brien",when:"2026-07-20",note:""},
-    {cab:"board",name:"Board minutes — July",kind:"doc",tag:"fin",who:"Kate Donnelly",when:"2026-07-15",note:""},
-    {cab:"grants",name:"Idaho Arts operating grant — award",kind:"pdf",tag:"sot",who:"Kate Donnelly",when:"2026-05-30",note:""},
-    {cab:"venue",name:"Certificate of occupancy & insurance",kind:"pdf",tag:"sot",who:"Hank Mueller",when:"2026-01-01",note:""}
-  ];
+  /* Seeded records — built from this system's own book (its people, jobs and paperwork), never typed in. */
+  var SEED=(function(){ var D={}; try{ D=T.db()||{}; }catch(e){} var out=[], today=((T.TODAY instanceof Date)?T.TODAY:new Date()).toISOString().slice(0,10);
+    function add(cab,name,kind,tag,who,when,note){ if(name) out.push({cab:cab,name:String(name),kind:kind||"pdf",tag:tag||"",who:who||"",when:when||"",note:note||""}); }
+    function exp(d){ return !d||!/^\d{4}-/.test(d)?"":(d<today?"EXPIRED":"Expires "+d); }
+    try{ var S=T.SEATS||{}, DH=function(re){ var k=Object.keys(S).filter(function(x){return S[x]&&S[x].dh&&re.test(S[x].dh.t);})[0]; return k?S[k].dh.name:""; };
+      var PD=DH(/producing/i), LIC=DH(/licens/i), DEV=DH(/development/i), VOL=DH(/volunteer/i), HM=DH(/house/i), FIN=DH(/finance/i);
+      (D.productions||[]).forEach(function(p){ add("productions",p.title+" — production book","doc",p.stage==="Closed"?"fin":"wip",PD,p.opens,p.stage); add("rights","Performance license — "+p.title+" ("+p.licensor+")","pdf",p.rights==="Secured"?"sot":"",LIC,"",p.rights); });
+      (D.gifts||[]).forEach(function(g){ add("patrons","Gift acknowledgment — "+g.donor+" ("+g.fund+")","doc",g.ack?"sot":"wip",DEV,g.date,g.ack?"Acknowledged":"Not yet acknowledged"); });
+      (D.sponsors||[]).forEach(function(s){ add("patrons","Sponsor agreement — "+s.name,"pdf","sot",DEV,"","Renews "+s.renews); });
+      (D.board||[]).forEach(function(b){ add("board","Board seat — "+b.name+" ("+b.seat+")","doc","sot",FIN,"","Term ends "+b.termEnds+(b.coi?" · conflict-of-interest form on file":"")); });
+      (D.volunteers||[]).forEach(function(v){ add("people","Volunteer record — "+v.name,"doc","sot",VOL,"",(v.jobs||[]).join(", ")); });
+      var H=D.house||{}; (H.venues||[]).forEach(function(v){ add("venue","Venue file — "+v.name+" ("+v.seats+" seats)","pdf","sot",HM,"",""); }); }catch(e){}
+    return out; })();
 
   function load(){ try{ var d=JSON.parse(sessionStorage.getItem(KEY)); if(d&&d.length) return d; }catch(e){} return SEED.slice(); }
   function persist(){ try{ sessionStorage.setItem(KEY,JSON.stringify(FILES)); }catch(e){} }
