@@ -364,14 +364,12 @@
   var DEPTS = [
     { group:"The Playhouse", items:[
       { label:"Command Center", href:"dashboard.html", ic:"⌘" }, { href:"calendar.html", label:"Calendar", ic:"▤" }, { href:"contacts.html", label:"Contacts", ic:"☎" }, { href:"connect.html", label:"Connect · Video", ic:"◉" }, { href:"records.html", label:"Records · Filing", ic:"▤" },
-      { label:"Approval Desk",  href:"approvals.html", ic:"✓" }
-    ]},
+      { label:"Approval Desk",  href:"approvals.html", ic:"✓" }, { href:"masterlist.html", label:"Master List", ic:"✎" }, { href:"mail.html", label:"Mail", ic:"✉" } ]},
     { group:"Season & Stage", items:[
       { label:"Productions",        href:"productions.html", room:"productions", ic:"▦" },
       { label:"Rights & Royalties", href:"rights.html",      room:"rights",      ic:"§" },
       { label:"Show Staffing",      href:"staffing.html",    room:"staffing",    ic:"▤" },
-      { label:"Scene Shop",         href:"scene.html",       room:"scene",       ic:"⚒" }
-    ]},
+      { label:"Scene Shop",         href:"scene.html",       room:"scene",       ic:"⚒" }, { href:"aimos.html", label:"Prop & Costume Shop", ic:"▦" } ]},
     { group:"Front of House", items:[
       { label:"Box Office",         href:"boxoffice.html",   room:"boxoffice",   ic:"◉" },
       { label:"Patrons",            href:"patrons.html",     room:"patrons",     ic:"👥" }
@@ -394,8 +392,8 @@
       { label:"Books",              href:"books.html",       room:"books",       ic:"▥" },
       { label:"Operations",         href:"ops.html",         room:"ops",         ic:"⚙" },
       { label:"Law & Counsel",      href:"law.html",         room:"law",         ic:"§" },
-      { label:"Board & Governance", href:"board.html",       room:"board",       ic:"⬡" }
-    ]},
+      { label:"Board & Governance", href:"board.html",       room:"board",       ic:"⬡" }, { href:"documents.html", label:"Documents", ic:"▤" }, { href:"sign.html", label:"e-Sign", ic:"✍" } ]},
+    { group:"The House", items:[ { href:"manual.html", label:"Owner's Manual", ic:"?" }, { href:"it.html", label:"IT · System Health", ic:"♥" }, { href:"skins.html", label:"Skins", ic:"◐" } ] },
     { group:"The Org", items:[
       { label:"Agent Org · Bus",    href:"org.html",         room:"org",         ic:"✦" }
     ]}
