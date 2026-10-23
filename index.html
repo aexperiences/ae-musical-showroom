@@ -1,108 +1,84 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Musical OS V3.5 · Community Playhouse OS</title>
-<meta name="description" content="Musical OS — the operating system for a non-profit community playhouse. Box office, the season, giving, sponsorship, volunteers, classes and a 501(c)(3) law desk. Powered by Accelerated Experiences LLC.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="musical.css">
-<link rel="canonical" href="https://www.aexperiences.com/apps/musical/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Accelerated Experiences LLC">
-<meta property="og:title" content="Musical OS — Community playhouse OS">
-<meta property="og:description" content="Box office, season, giving, sponsorship, volunteers and classes — the whole playhouse on one spine.">
-<meta property="og:url" content="https://www.aexperiences.com/apps/musical/">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Musical OS — the operating system for a community playhouse</title>
+<meta name="description" content="Musical OS runs a non-profit community theater end to end: the box office and the season, rights and royalties, patrons and subscribers, giving and sponsorship, volunteers, classes, the books, the board and a 501(c)(3) law desk. The only theater OS that speaks non-profit. A white-label build by Accelerated Experiences LLC.">
+<link rel="canonical" href="https://aexperiences.studio/apps/musical/">
+<meta property="og:title" content="Musical OS — community playhouse operating system">
+<meta property="og:description" content="Box office, the season, giving, sponsorship, volunteers, classes, the board and a law desk that knows what a 501(c)(3) can do. Walk in and use it.">
 <meta property="og:image" content="https://www.aexperiences.com/Musical_OS.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aexperiences.studio/apps/musical/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Musical OS — Community playhouse OS">
-<meta name="twitter:description" content="Box office, season, giving, sponsorship, volunteers and classes — the whole playhouse on one spine.">
-<meta name="twitter:image" content="https://www.aexperiences.com/Musical_OS.png">
+<link rel="icon" href="https://www.aexperiences.com/Musical_OS.png">
+<link rel="apple-touch-icon" href="https://www.aexperiences.com/Musical_OS.png">
+<meta name="theme-color" content="#e0b24a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap">
+<style>
+  :root{--card:#fffaf0;--sunk:#f4ecdc;--line:#e4d7bc;--ink:#211a14;--ink-2:#3d3128;--mut:#7a6d5e;--acc:#e0b24a}
+  *{box-sizing:border-box}
+  body,.lede,.gf h3,.gf p,.gfoot,.alt a{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+  body{margin:0;font-family:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(165deg,#55616f,#39434f 60%,#272e36);-webkit-font-smoothing:antialiased}
+  .gate{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:34px max(16px,env(safe-area-inset-right,0px)) 34px max(16px,env(safe-area-inset-left,0px))}
+  .gcard{max-width:940px;width:100%;background:var(--card);border-radius:20px;overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.55)}
+  .gtop{display:flex;gap:18px;align-items:center;padding:30px 34px 24px;border-bottom:1px solid var(--line)}
+  .gtop img{width:74px;height:74px;border-radius:17px;display:block;flex:none}
+  .gtop h1{margin:0;font-size:27px;letter-spacing:-.01em;color:var(--ink);font-weight:700}
+  .gtop p{margin:5px 0 0;font-size:14px;color:var(--mut)}
+  .gbody{padding:26px 34px 30px}
+  .lede{font-size:16.5px;line-height:1.65;color:var(--ink-2);margin:0 0 22px;max-width:66ch}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:24px}
+  .gf{min-width:0}
+  .gf h3{margin:0 0 5px;font-size:13.5px;color:var(--ink)}
+  .gf p{margin:0;font-size:12.8px;line-height:1.55;color:var(--mut)}
+  .enter{display:inline-flex;align-items:center;gap:9px;background:var(--acc);color:#fff;border:none;padding:15px 26px;border-radius:12px;font-size:16px;font-weight:600;text-decoration:none;cursor:pointer}
+  .enter:hover{filter:brightness(.92)}
+  .enter:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+  .alt{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .alt a{font-size:13px;color:var(--ink-2);text-decoration:none;border:1px solid var(--line);border-radius:9px;padding:9px 14px;background:var(--card)}
+  .alt a:hover{border-color:var(--acc);color:var(--acc)}
+  .gfoot{padding:16px 34px;background:var(--sunk);font-size:12px;color:var(--mut);line-height:1.6}
+  .gfoot b{color:var(--ink-2)}
+  @media(max-width:760px){.gtop{padding:22px 20px 18px;gap:13px}.gtop img{width:56px;height:56px}.gtop h1{font-size:21px}.gbody{padding:20px}.grid3{grid-template-columns:1fr;gap:14px}.gfoot{padding:14px 20px}.enter{width:100%;justify-content:center}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
 </head>
 <body>
-
-<div style="position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:44px 20px">
-  <main style="width:100%;max-width:760px">
-
-    <section class="card" style="padding:34px 36px 0;border-radius:18px;box-shadow:var(--sh-lg);margin-bottom:0">
-
-      <div class="row" style="gap:13px;align-items:center">
-        <div class="bmark art" aria-hidden="true" style="width:44px;height:44px">
-          <img src="https://www.aexperiences.com/Musical_OS.png" alt="" width="44" height="44">
-        </div>
-        <div>
-          <div style="font-size:19px;font-weight:680;letter-spacing:-.024em;line-height:1.15">Musical OS</div>
-          <div class="muted mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:2px">Community Playhouse OS · V3.5</div>
-        </div>
-        <span class="spacer"></span>
-        <span class="tag mono ghost">SHOWROOM</span>
-      </div>
-
-      <div class="divider" style="margin:22px 0 20px"></div>
-
-      <h1 style="font-size:27px;letter-spacing:-.028em;line-height:1.2">The whole playhouse,<br>running as one system.</h1>
-      <p style="font-size:14.5px;color:var(--ink-2);line-height:1.65;margin-top:14px;max-width:62ch">
-        Musical OS is the operating system for a non-profit community theatre — the box office and the
-        season, the giving and the sponsorship that actually pay for it, the volunteers who run the house,
-        the classes that raise the next company, and a 501(c)(3) law desk that tells you when to call a
-        lawyer. It is the only theatre OS that speaks non-profit.
-      </p>
-
-      <div class="fence" style="margin-top:20px">
-        <b>This is the real OS, not a slideshow.</b> It runs entirely in your browser. Everything you type
-        stays in this tab, nothing is uploaded, and the floor resets when you leave. Nothing here sends,
-        spends or publishes — anything that would is staged on the Approval Desk instead.
-      </div>
-
-      <div style="margin-top:24px">
-        <label class="f">What a playhouse actually carries</label>
-        <div class="row" style="gap:6px">
-          <span class="tag">Box Office</span>
-          <span class="tag">Productions</span>
-          <span class="tag">Rights &amp; Royalties</span>
-          <span class="tag">Patrons &amp; Subscribers</span>
-          <span class="tag">Development · Giving</span>
-          <span class="tag">Sponsorship</span>
-          <span class="tag">Volunteers</span>
-          <span class="tag">Classes &amp; Camps</span>
-          <span class="tag">Books</span>
-          <span class="tag">Law &amp; Counsel</span>
-          <span class="tag">Agent Org · Bus</span>
-        </div>
-        <p class="muted small" style="margin-top:10px;line-height:1.55">
-          Every one is priced on its own. Start from a package and take a department off, or add one back —
-          the price moves with it. The tier pill inside is a live configurator, not a picture of one.
-        </p>
-      </div>
-
-      <div class="divider" style="margin:24px 0 20px"></div>
-      <div class="row" style="gap:14px">
-        <a class="btn brass" href="dashboard.html" id="enter" style="padding:12px 22px;font-size:14px">
-          Enter the showroom &rarr;
-        </a>
-        <span class="muted small" style="max-width:36ch;line-height:1.5">
-          Opens on the full build with every department switched on. Take any of them off from the tier pill inside.
-        </span>
-      </div>
-
-      <div class="ae-credit" style="margin:26px -36px 0;padding:16px 36px 22px">
-        <a href="https://www.aexperiences.com/" class="ae-triad" aria-label="AOS — Accelerated Experiences LLC"><img src="/marks/aos-badge.png" alt="AOS — Accelerated Operating Systems" style="height:30px;width:auto;vertical-align:middle"></a><br>Musical OS is a white-label build.
-        The playhouse on this floor is fictional. Where a sector benchmark is not sourced, the metric ships
-        with no target rather than a guess.
-      </div>
-
-    </section>
-  </main>
-</div>
-
+<div class="gate"><div class="gcard">
+  <div class="gtop">
+    <img src="https://www.aexperiences.com/Musical_OS.png" alt="Musical OS">
+    <div><h1>Musical OS</h1><p>The operating system for a non-profit community playhouse</p></div>
+  </div>
+  <div class="gbody">
+    <p class="lede">A community theater does not run on ticket sales. It runs on the season — where a show cannot be announced until its rights are secured, where the giving and the sponsors pay for what the box office cannot, where volunteers run the house and the classes raise the next company, and where the board carries duties a for-profit never has. Musical OS is built around that. It is the only theater OS that speaks non-profit.</p>
+    <div class="grid3">
+      <div class="gf"><h3>Rights before tickets</h3><p>A production without secured rights is flagged on the home screen. Nothing goes on sale for a show the playhouse cannot legally stage.</p></div>
+      <div class="gf"><h3>The giving that pays for it</h3><p>Development tracks every gift and every thank-you letter still owed. Sponsorship is its own room, with the season&#x27;s sponsors and the dollars in.</p></div>
+      <div class="gf"><h3>The box office and the subscribers</h3><p>Seats sold per show, the season subscribers, and the patrons behind them — one record per person.</p></div>
+      <div class="gf"><h3>Volunteers and classes</h3><p>The people who run the house, with their hours, and the classes and camps that fill the next cast — enrolled, scheduled and paid for.</p></div>
+      <div class="gf"><h3>The board and the 501(c)(3) desk</h3><p>Conflict-of-interest forms, governance, and a law desk that knows what a non-profit can and cannot do and says when to call counsel.</p></div>
+      <div class="gf"><h3>Every department priced on its own</h3><p>Start from a package and take a department off, or add one back; the price moves with it. The tier pill inside is a live configurator.</p></div>
+    </div>
+    <a class="enter" id="enter" href="dashboard.html">Walk in and use it &rarr;</a>
+    <div class="alt">
+      <a href="boxoffice.html">Check tonight&#x27;s house</a>
+      <a href="rights.html">Secure a show&#x27;s rights</a>
+      <a href="development.html">Thank a donor</a>
+      <a href="volunteers.html">Schedule the volunteers</a>
+      <a href="books.html">Read the season&#x27;s books</a>
+    </div>
+  </div>
+  <div class="gfoot">
+    This is the real system running in your browser, not a slideshow — everything you type stays on your device and
+    nothing is uploaded. It opens on a realistic sample playhouse; the ribbon at the top clears it so you can enter your own.
+    <b>Musical OS is a white-label build by Accelerated Experiences LLC.</b>
+    Nothing here is legal or tax advice; the law desk tells you when to call a lawyer.
+  </div>
+</div></div>
 <script src="musical.js"></script>
-<script>
-(function () {
-  var M = window.Musical, a = document.getElementById("enter");
-  if (a && M) a.addEventListener("click", function () { M.resetFloor(); });
-})();
-</script>
+<script>(function(){var E=window.Musical;var a=document.getElementById("enter");if(a&&E&&E.resetFloor)a.addEventListener("click",function(){E.resetFloor();});})();</script>
 </body>
 </html>
